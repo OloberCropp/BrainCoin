@@ -24,7 +24,9 @@ queries = {
     'chat_id_get': "SELECT chat_id FROM users",
     'random_usname_chat_id': "SELECT chat_id, username FROM users WHERE id = ? AND NOT chat_id = ?",
     'my_chat_id': "SELECT id FROM users WHERE chat_id = ?",
-    'max_id': "SELECT max(id) FROM users"
+    'max_id': "SELECT max(id) FROM users",
+    'max_ques_id': "SELECT max(id) FROM questions",
+    'random_question': "SELECT * FROM questions WHERE id = ?"
 }
 
 DBNAME = 'main.db'
@@ -75,7 +77,7 @@ def accept_bet(message):
     bot.answer_callback_query(message.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_25')
-def change_bet_50(curr_bet):
+def change_bet_25(curr_bet):
     bet = 25
     markup = create_choice()
     bot.edit_message_text(your_bet_is.format(str(bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
@@ -89,14 +91,14 @@ def change_bet_50(curr_bet):
     bot.answer_callback_query(curr_bet.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_100')
-def change_bet_50(curr_bet):
+def change_bet_100(curr_bet):
     bet = 100
     markup = create_choice()
     bot.edit_message_text(your_bet_is.format(str(bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_200')
-def change_bet_50(curr_bet):
+def change_bet_200(curr_bet):
     bet = 200
     markup = create_choice()
     bot.edit_message_text(your_bet_is.format(str(bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
@@ -117,6 +119,7 @@ def start(message):
                 max_id = 0
         except:
             pass
+
 
         # Запись пользователя в базу
         money = 0
@@ -165,6 +168,7 @@ def start_handler(message):
         bot.send_message(message.chat.id, "Ты ввёл что-то не то =( =( =(")
 
     print(defs.random_user(message))
+    print(defs.ques_9())
 
 
 

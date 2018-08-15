@@ -25,6 +25,32 @@ def random_user(message):
 
         if z != None:
             return z
+def ques_9():
+    mass = []
+
+    mass.append(random_ques())
+    mass.append(random_ques())
+    mass.append(random_ques())
+    mass.append(random_ques())
+    mass.append(random_ques())
+    mass.append(random_ques())
+    mass.append(random_ques())
+    mass.append(random_ques())
+    mass.append(random_ques())
+    mass.append(random_ques())
+
+    return mass
+
+
+
+def random_ques():
+    connection = get_db_connection(DBNAME)
+    cursor = connection.cursor()
+    cursor.execute(queries['max_ques_id'])
+    max_ques_id = cursor.fetchone()[0]
+    x = random.randrange(1, max_ques_id + 1, 1)
+    cursor.execute(queries['random_question'], (x,))
+    return cursor.fetchone()
 
 
 def upd_rating(message):
