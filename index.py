@@ -6,6 +6,7 @@ import texts
 import sqlite3
 import random
 from telebot import types
+from classes import Battle
 
 # Запросы
 queries = {
@@ -47,9 +48,368 @@ connection.execute(queries['table_question_create'])
 connection.commit()
 connection.close()
 
+
 welcome_text = """Ваш противник: {}"""
 your_bet_is = """Ваша ставка: {}"""
 bet = 0
+
+
+def create_question(cur_quests, num):
+    markup = types.InlineKeyboardMarkup()
+    row = []
+    row.append(types.InlineKeyboardButton(cur_quests[num][3], callback_data="answer1"))
+    row.append(types.InlineKeyboardButton(cur_quests[num][4], callback_data="answer2"))
+    markup.row(*row)
+
+    row = []
+    row.append(types.InlineKeyboardButton(cur_quests[num][5], callback_data="answer3"))
+    row.append(types.InlineKeyboardButton(cur_quests[num][6], callback_data="answer4"))
+    markup.row(*row)
+    return markup
+
+@bot.callback_query_handler(func=lambda call: call.data == 'answer1')
+def answer1(call):
+    # объект класса битвы [0]
+    battle = const.battle_array.get(call.message.chat.id)
+
+    if battle[0].nine_questions[battle[1]][3] == battle[0].nine_questions[battle[1]][7]:
+        # добавляем очков
+        battle[0].inc_score(call.message.chat.id)
+        # поставить таймер и отсчитывать 3 секунды, показывая сообщение "Правильно"
+    else:
+        # показать правильный ответ
+        pass
+
+    curr = const.battle_array.get(battle[0].first_player)[1]
+    battle[0].inc_quest_count()
+    e = battle[0].get_another(call.from_user.id)
+
+    if (curr >= 5):
+        # максимальное количество вопросов достигнута
+        if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+        elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+        else:
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+
+        keyboard_defs.paymenu_keyboard(call.message)
+        keyboard_defs.paymenu_keyboard(e.message)
+    else:
+        battle[0].set_ready(call.message.chat.id)
+
+        if battle[0].is_two_ready():
+            # отправить следующий вопрос себе
+            markup = create_question(battle[0].nine_questions, battle[1])
+            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], call.from_user.id, call.message.message_id,
+                                  reply_markup=markup)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперника
+
+            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], e.from_user.id, e.message.message_id,
+                                  reply_markup=markup)
+            bot.answer_callback_query(e.id, text="")
+        else:
+            # вывести сообщение, что ждём соперника
+            bot.edit_message_text("Ждём соперника", call.from_user.id, call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+
+@bot.callback_query_handler(func=lambda call: call.data == 'answer2')
+def answer2(call):
+    # объект класса битвы [0]
+    battle = const.battle_array.get(call.message.chat.id)
+
+    if battle[0].nine_questions[battle[1]][4] == battle[0].nine_questions[battle[1]][7]:
+        # добавляем очков
+        battle[0].inc_score(call.message.chat.id)
+        # поставить таймер и отсчитывать 3 секунды, показывая сообщение "Правильно"
+    else:
+        # показать правильный ответ
+        pass
+
+    curr = const.battle_array.get(battle[0].first_player)[1]
+    battle[0].inc_quest_count()
+    e = battle[0].get_another(call.from_user.id)
+
+    if (curr >= 5):
+        # максимальное количество вопросов достигнута
+        if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+        elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+        else:
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+
+        keyboard_defs.paymenu_keyboard(call.message)
+        keyboard_defs.paymenu_keyboard(e.message)
+    else:
+        battle[0].set_ready(call.message.chat.id)
+
+        if battle[0].is_two_ready():
+            # отправить следующий вопрос себе
+            markup = create_question(battle[0].nine_questions, battle[1])
+            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], call.from_user.id, call.message.message_id,
+                                  reply_markup=markup)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперника
+
+            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], e.from_user.id, e.message.message_id,
+                                  reply_markup=markup)
+            bot.answer_callback_query(e.id, text="")
+        else:
+            # вывести сообщение, что ждём соперника
+            bot.edit_message_text("Ждём соперника", call.from_user.id, call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+@bot.callback_query_handler(func=lambda call: call.data == 'answer3')
+def answer3(call):
+    # объект класса битвы [0]
+    battle = const.battle_array.get(call.message.chat.id)
+
+    if battle[0].nine_questions[battle[1]][5] == battle[0].nine_questions[battle[1]][7]:
+        # добавляем очков
+        battle[0].inc_score(call.message.chat.id)
+        # поставить таймер и отсчитывать 3 секунды, показывая сообщение "Правильно"
+    else:
+        # показать правильный ответ
+        pass
+
+    curr = const.battle_array.get(battle[0].first_player)[1]
+    battle[0].inc_quest_count()
+    e = battle[0].get_another(call.from_user.id)
+
+    if (curr >= 5):
+        # максимальное количество вопросов достигнута
+        if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+        elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+        else:
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+
+        keyboard_defs.paymenu_keyboard(call.message)
+        keyboard_defs.paymenu_keyboard(e.message)
+    else:
+        battle[0].set_ready(call.message.chat.id)
+
+        if battle[0].is_two_ready():
+            # отправить следующий вопрос себе
+            markup = create_question(battle[0].nine_questions, battle[1])
+            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], call.from_user.id, call.message.message_id,
+                                  reply_markup=markup)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперника
+
+            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], e.from_user.id, e.message.message_id,
+                                  reply_markup=markup)
+            bot.answer_callback_query(e.id, text="")
+        else:
+            # вывести сообщение, что ждём соперника
+            bot.edit_message_text("Ждём соперника", call.from_user.id, call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+@bot.callback_query_handler(func=lambda call: call.data == 'answer4')
+def answer4(call):
+    # объект класса битвы [0]
+    battle = const.battle_array.get(call.message.chat.id)
+
+    if battle[0].nine_questions[battle[1]][6] == battle[0].nine_questions[battle[1]][7]:
+        # добавляем очков
+        battle[0].inc_score(call.message.chat.id)
+        # поставить таймер и отсчитывать 3 секунды, показывая сообщение "Правильно"
+    else:
+        # показать правильный ответ
+        pass
+
+    curr = const.battle_array.get(battle[0].first_player)[1]
+    battle[0].inc_quest_count()
+    e = battle[0].get_another(call.from_user.id)
+
+    if(curr >= 5):
+        # максимальное количество вопросов достигнута
+        if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id), battle[0].get_score(e.from_user.id)), call.from_user.id, call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id), battle[0].get_score(call.from_user.id)), e.from_user.id, e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+        elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+        else:
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+
+        keyboard_defs.paymenu_keyboard(call.message)
+        keyboard_defs.paymenu_keyboard(e.message)
+    else:
+        battle[0].set_ready(call.message.chat.id)
+
+        if battle[0].is_two_ready():
+            # отправить следующий вопрос себе
+            markup = create_question(battle[0].nine_questions, battle[1])
+            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], call.from_user.id, call.message.message_id,
+                                  reply_markup=markup)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперника
+
+
+            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], e.from_user.id, e.message.message_id, reply_markup=markup)
+            bot.answer_callback_query(e.id, text="")
+        else:
+            # вывести сообщение, что ждём соперника
+            bot.edit_message_text("Ждём соперника", call.from_user.id, call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+@bot.callback_query_handler(func=lambda call: call.data == 'accept')
+def accept_bet(call):
+    #начaло самой игры
+    print("user started the game")
+
+    if len(const.map) == 0:
+        const.map.append([call.message.chat.id, call.message.chat.username, call])
+
+        #изменение текста на "Поиск соперника"
+        return
+    else:
+        x = Battle(call.message, const.map[0])
+        const.battle_array.update({call.message.chat.id: [x, 0]})
+
+    markup = create_question(const.battle_array.get(call.message.chat.id)[0].nine_questions,
+                             const.battle_array.get(call.message.chat.id)[1])
+    bat = const.battle_array.get(call.message.chat.id)
+
+    bat[0].set_id(call)
+
+    bot.edit_message_text(bat[0].nine_questions[bat[1]][2], call.from_user.id, call.message.message_id, reply_markup=markup)
+    bot.answer_callback_query(call.id, text="")
+
+    #отправка сообщения сопернику
+
+    e = bat[0].get_another(call.from_user.id)
+
+    bot.edit_message_text(bat[0].nine_questions[bat[1]][2], e.from_user.id, e.message.message_id,
+                          reply_markup=markup)
+    bot.answer_callback_query(e.id, text="")
+
+
+##################################    bet
+
 
 def create_choice():
     markup = types.InlineKeyboardMarkup()
@@ -63,18 +423,6 @@ def create_choice():
     row.append(types.InlineKeyboardButton("Подтвердить и начать", callback_data="accept"))
     markup.row(*row)
     return markup
-
-@bot.message_handler(commands=['start'])
-def start(message):
-    keyboard_defs.start_keyboard(message)
-
-@bot.callback_query_handler(func=lambda message: message.data == 'accept')
-def accept_bet(message):
-    #начло самой игры
-    print("user started the game")
-    markup = create_choice()
-    bot.edit_message_text(your_bet_is.format(str(bet)), message.from_user.id, message.message.message_id, reply_markup=markup)
-    bot.answer_callback_query(message.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_25')
 def change_bet_25(curr_bet):
@@ -103,6 +451,10 @@ def change_bet_200(curr_bet):
     markup = create_choice()
     bot.edit_message_text(your_bet_is.format(str(bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
+
+
+##################################
+
 
 @bot.message_handler(commands=['start'])
 def start(message):
