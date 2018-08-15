@@ -56,11 +56,6 @@ class Battle:
         # s_us = id, username, call
         const.battle_array.update({s_us[0]: [self, 0]})
 
-        try:
-            const.map.extend([s_us[0], s_us[1], s_us[2]])
-        except:
-            pass
-
         self.first_player = message.chat.id
         self.name_fp = message.chat.username
         # get_user = defs.random_user(message)

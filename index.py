@@ -67,312 +67,19 @@ def create_question(cur_quests, num):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer1')
 def answer1(call):
-    # объект класса битвы [0]
-    battle = const.battle_array.get(call.message.chat.id)
-
-    if battle[0].nine_questions[battle[1]][3] == battle[0].nine_questions[battle[1]][7]:
-        # добавляем очков
-        battle[0].inc_score(call.message.chat.id)
-        # поставить таймер и отсчитывать 3 секунды, показывая сообщение "Правильно"
-    else:
-        # показать правильный ответ
-        pass
-
-    curr = const.battle_array.get(battle[0].first_player)[1]
-    battle[0].inc_quest_count()
-    e = battle[0].get_another(call.from_user.id)
-
-    if (curr >= 6):
-        # максимальное количество вопросов достигнута
-        if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
-            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-        elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
-            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-        else:
-            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-
-        keyboard_defs.paymenu_keyboard(call.message)
-        keyboard_defs.paymenu_keyboard(e.message)
-    else:
-        battle[0].set_ready(call.message.chat.id)
-
-        if battle[0].is_two_ready():
-            # отправить следующий вопрос себе
-            markup = create_question(battle[0].nine_questions, battle[1])
-            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], call.from_user.id, call.message.message_id,
-                                  reply_markup=markup)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперника
-
-            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], e.from_user.id, e.message.message_id,
-                                  reply_markup=markup)
-            bot.answer_callback_query(e.id, text="")
-        else:
-            # вывести сообщение, что ждём соперника
-            bot.edit_message_text("Ждём соперника", call.from_user.id, call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
+    defs.answer(call, 1)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer2')
 def answer2(call):
-    # объект класса битвы [0]
-    battle = const.battle_array.get(call.message.chat.id)
-
-    if battle[0].nine_questions[battle[1]][4] == battle[0].nine_questions[battle[1]][7]:
-        # добавляем очков
-        battle[0].inc_score(call.message.chat.id)
-        # поставить таймер и отсчитывать 3 секунды, показывая сообщение "Правильно"
-    else:
-        # показать правильный ответ
-        pass
-
-    curr = const.battle_array.get(battle[0].first_player)[1]
-    battle[0].inc_quest_count()
-    e = battle[0].get_another(call.from_user.id)
-
-    if (curr >= 6):
-        # максимальное количество вопросов достигнута
-        if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
-            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-        elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
-            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-        else:
-            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-
-        keyboard_defs.paymenu_keyboard(call.message)
-        keyboard_defs.paymenu_keyboard(e.message)
-    else:
-        battle[0].set_ready(call.message.chat.id)
-
-        if battle[0].is_two_ready():
-            # отправить следующий вопрос себе
-            markup = create_question(battle[0].nine_questions, battle[1])
-            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], call.from_user.id, call.message.message_id,
-                                  reply_markup=markup)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперника
-
-            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], e.from_user.id, e.message.message_id,
-                                  reply_markup=markup)
-            bot.answer_callback_query(e.id, text="")
-        else:
-            # вывести сообщение, что ждём соперника
-            bot.edit_message_text("Ждём соперника", call.from_user.id, call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
+    defs.answer(call, 2)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer3')
 def answer3(call):
-    # объект класса битвы [0]
-    battle = const.battle_array.get(call.message.chat.id)
-
-    if battle[0].nine_questions[battle[1]][5] == battle[0].nine_questions[battle[1]][7]:
-        # добавляем очков
-        battle[0].inc_score(call.message.chat.id)
-        # поставить таймер и отсчитывать 3 секунды, показывая сообщение "Правильно"
-    else:
-        # показать правильный ответ
-        pass
-
-    curr = const.battle_array.get(battle[0].first_player)[1]
-    battle[0].inc_quest_count()
-    e = battle[0].get_another(call.from_user.id)
-
-    if (curr >= 6):
-        # максимальное количество вопросов достигнута
-        if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
-            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-        elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
-            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-        else:
-            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-
-        keyboard_defs.paymenu_keyboard(call.message)
-        keyboard_defs.paymenu_keyboard(e.message)
-    else:
-        battle[0].set_ready(call.message.chat.id)
-
-        if battle[0].is_two_ready():
-            # отправить следующий вопрос себе
-            markup = create_question(battle[0].nine_questions, battle[1])
-            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], call.from_user.id, call.message.message_id,
-                                  reply_markup=markup)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперника
-
-            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], e.from_user.id, e.message.message_id,
-                                  reply_markup=markup)
-            bot.answer_callback_query(e.id, text="")
-        else:
-            # вывести сообщение, что ждём соперника
-            bot.edit_message_text("Ждём соперника", call.from_user.id, call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
+    defs.answer(call, 3)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer4')
 def answer4(call):
-    # объект класса битвы [0]
-    battle = const.battle_array.get(call.message.chat.id)
-
-    if battle[0].nine_questions[battle[1]][6] == battle[0].nine_questions[battle[1]][7]:
-        # добавляем очков
-        battle[0].inc_score(call.message.chat.id)
-        # поставить таймер и отсчитывать 3 секунды, показывая сообщение "Правильно"
-    else:
-        # показать правильный ответ
-        pass
-
-    curr = const.battle_array.get(battle[0].first_player)[1]
-    battle[0].inc_quest_count()
-    e = battle[0].get_another(call.from_user.id)
-
-    if(curr >= 6):
-        # максимальное количество вопросов достигнута
-        if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
-            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id), battle[0].get_score(e.from_user.id)), call.from_user.id, call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id), battle[0].get_score(call.from_user.id)), e.from_user.id, e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-        elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
-            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-        else:
-            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
-                                                       battle[0].get_score(e.from_user.id)), call.from_user.id,
-                                  call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперникy
-
-            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
-                                                       battle[0].get_score(call.from_user.id)), e.from_user.id,
-                                  e.message.message_id)
-            bot.answer_callback_query(e.id, text="")
-
-        keyboard_defs.paymenu_keyboard(call.message)
-        keyboard_defs.paymenu_keyboard(e.message)
-    else:
-        battle[0].set_ready(call.message.chat.id)
-
-        if battle[0].is_two_ready():
-            # отправить следующий вопрос себе
-            markup = create_question(battle[0].nine_questions, battle[1])
-            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], call.from_user.id, call.message.message_id,
-                                  reply_markup=markup)
-            bot.answer_callback_query(call.id, text="")
-
-            # отправить следующий вопрос соперника
-
-
-            bot.edit_message_text(battle[0].nine_questions[battle[1]][2], e.from_user.id, e.message.message_id, reply_markup=markup)
-            bot.answer_callback_query(e.id, text="")
-        else:
-            # вывести сообщение, что ждём соперника
-            bot.edit_message_text("Ждём соперника", call.from_user.id, call.message.message_id)
-            bot.answer_callback_query(call.id, text="")
+    defs.answer(call, 4)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'accept')
 def accept_bet(call):
@@ -385,25 +92,31 @@ def accept_bet(call):
         #изменение текста на "Поиск соперника"
         return
     else:
+
         x = Battle(call.message, const.map[0])
+        try:
+            const.map.remove(const.map[0])
+        except:
+            pass
+
         const.battle_array.update({call.message.chat.id: [x, 0]})
 
-    markup = create_question(const.battle_array.get(call.message.chat.id)[0].nine_questions,
-                             const.battle_array.get(call.message.chat.id)[1])
-    bat = const.battle_array.get(call.message.chat.id)
+        markup = create_question(const.battle_array.get(call.message.chat.id)[0].nine_questions,
+                                 const.battle_array.get(call.message.chat.id)[1])
+        bat = const.battle_array.get(call.message.chat.id)
 
-    bat[0].set_id(call)
+        bat[0].set_id(call)
 
-    bot.edit_message_text(bat[0].nine_questions[bat[1]][2], call.from_user.id, call.message.message_id, reply_markup=markup)
-    bot.answer_callback_query(call.id, text="")
+        bot.edit_message_text(bat[0].nine_questions[bat[1]][2], call.from_user.id, call.message.message_id, reply_markup=markup)
+        bot.answer_callback_query(call.id, text="")
 
-    #отправка сообщения сопернику
+        #отправка сообщения сопернику
 
-    e = bat[0].get_another(call.from_user.id)
+        e = bat[0].get_another(call.from_user.id)
 
-    bot.edit_message_text(bat[0].nine_questions[bat[1]][2], e.from_user.id, e.message.message_id,
-                          reply_markup=markup)
-    bot.answer_callback_query(e.id, text="")
+        bot.edit_message_text(bat[0].nine_questions[bat[1]][2], e.from_user.id, e.message.message_id,
+                              reply_markup=markup)
+        bot.answer_callback_query(e.id, text="")
 
 
 
