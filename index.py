@@ -26,7 +26,9 @@ queries = {
     'my_chat_id': "SELECT id FROM users WHERE chat_id = ?",
     'max_id': "SELECT max(id) FROM users",
     'max_ques_id': "SELECT max(id) FROM questions",
-    'random_question': "SELECT * FROM questions WHERE id = ?"
+    'random_question': "SELECT * FROM questions WHERE id = ?",
+    'Rand_q': "SELECT * FROM questions WHERE id IN (SELECT id FROM questions ORDER BY RANDOM() LIMIT 5)",
+    'inc_ref': "UPDATE users SET referal=? WHERE chat_id=?"
 }
 
 DBNAME = 'main.db'
@@ -176,14 +178,19 @@ def start(message):
     cursor = connection.cursor()
     cursor.execute(queries['user_get'], (message.chat.id,))
     if cursor.fetchone() is None:
+        print(message.text)
         x = message.text[7:]
-        if x != None:
-            cursor.execute(queries['referal_insert'], (x, message.chat.id))
+        if x != '':
+            y = int(defs.ref_get(x))+1
+            cursor.execute(queries['inc_ref'], (y, x))
             bot.send_message(x, "Привет, твой друг: "+message.chat.username+""" перешёл по твоей ссылке! 
-    теперь у тебя n приглашений, ещё
-    x до очистки рекламы
-    m до снятия комиссии""")
+теперь у тебя: """+str(y)+""" приглашений, ещё:
+"""+str(5-y)+""" до очистки рекламы, и
+"""+str(13-y)+""" до снятия комиссии""")
+            connection.commit()
         # Создание нумерации пользователей
+        connection = get_db_connection(DBNAME)
+        cursor = connection.cursor()
         cursor.execute('SELECT max(id) FROM users')
         max_id = cursor.fetchone()[0]
         print(max_id)
@@ -197,7 +204,7 @@ def start(message):
         # Запись пользователя в базу
         money = 0
         rating = 0
-        referal = message.chat.id
+        referal = 0
         cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.username, money, referal, rating))
         connection.commit()
 
@@ -244,7 +251,6 @@ def start_handler(message):
 https://telegram.me/Crypto_Shit_Fucking_bot?start="""+str(message.chat.id))
     else:
         bot.send_message(message.chat.id, "Ты ввёл что-то не то =( =( =(")
-
 
 """x = time.time()
 if x == 120:

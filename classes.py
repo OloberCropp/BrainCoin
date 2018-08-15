@@ -244,5 +244,4 @@ def start_handler(message):
         keyboard_defs.start_keyboard(message)
 if __name__ == '__main__':
     bot.polling(none_stop=True)
-
 """
