@@ -4,7 +4,7 @@ import const
 import random
 from index import get_db_connection, DBNAME, queries
 
-bot = telebot.TeleBot(const.token)
+bot = telebot.TeleBot(const.token2)
 
 global rating
 
@@ -38,7 +38,7 @@ def ques_9():
     mass.append(random_ques())
     mass.append(random_ques())
     mass.append(random_ques())
-
+    mass.append(random_ques())
     return mass
 
 
@@ -77,4 +77,10 @@ def get_money(message):
     connection = get_db_connection(DBNAME)
     cursor = connection.cursor()
     cursor.execute(queries['money_get'], (message.chat.id,))
+    return cursor.fetchone()[0]
+
+def ref_get(message):
+    connection = get_db_connection(DBNAME)
+    cursor = connection.cursor()
+    cursor.execute(queries['referal_get'], (message.chat.id,))
     return cursor.fetchone()[0]

@@ -10,11 +10,11 @@ from classes import Battle
 
 # Запросы
 queries = {
-    'table_users_create': "CREATE TABLE IF NOT EXISTS users (id INTEGER, chat_id INTEGER, username INTEGER, money INTEGER, referal VARCHAR(16), rating INTEGER)",
+    'table_users_create': "CREATE TABLE IF NOT EXISTS users (id INTEGER, chat_id INTEGER, username INTEGER, money INTEGER, referal INTEGER, rating INTEGER)",
     'table_question_create': "CREATE TABLE IF NOT EXISTS questions (id INTEGER, category VARCHAR(32), question VARCHAR(128), ans1 VARCHAR, ans2 VARCHAR, ans3 VARCHAR, ans4 VARCHAR, right_ansver VARCHAR)",
     'rating_update': "UPDATE users SET rating = ? WHERE chat_id = ?",
     'money_update': "UPDATE users SET money = ? WHERE chat_id = ?",
-    'referal_insert': "INSERT INTO users WHERE chat_id = ? VALUE rating = ?",
+    'referal_insert': "UPDATE users SET referal = ? WHERE chat_id = ?",
     'rating_get': "SELECT rating FROM users WHERE chat_id =?",
     'money_get': "SELECT money FROM users WHERE chat_id =?",
     'referal_get': "SELECT referal FROM users WHERE chat_id =?",
@@ -22,7 +22,6 @@ queries = {
     'user_delete': "DELETE FROM users WHERE chat_id = ?",
     'user_get': "SELECT * FROM users WHERE chat_id = ?",
     'users_get': "SELECT * FROM users",
-    'chat_id_get': "SELECT chat_id FROM users",
     'random_usname_chat_id': "SELECT chat_id, username FROM users WHERE id = ? AND NOT chat_id = ?",
     'my_chat_id': "SELECT id FROM users WHERE chat_id = ?",
     'max_id': "SELECT max(id) FROM users",
@@ -40,14 +39,13 @@ def get_db_connection(dbname):
     """
     return sqlite3.connect(dbname)
 
-bot = telebot.TeleBot(const.token)
+bot = telebot.TeleBot(const.token2)
 
 connection = get_db_connection('main.db')
 connection.execute(queries['table_users_create'])
 connection.execute(queries['table_question_create'])
 connection.commit()
 connection.close()
-
 
 welcome_text = """Ваш противник: {}"""
 your_bet_is = """Ваша ставка: {}"""
@@ -84,7 +82,7 @@ def answer1(call):
     battle[0].inc_quest_count()
     e = battle[0].get_another(call.from_user.id)
 
-    if (curr >= 5):
+    if (curr >= 6):
         # максимальное количество вопросов достигнута
         if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
             bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
@@ -163,7 +161,7 @@ def answer2(call):
     battle[0].inc_quest_count()
     e = battle[0].get_another(call.from_user.id)
 
-    if (curr >= 5):
+    if (curr >= 6):
         # максимальное количество вопросов достигнута
         if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
             bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
@@ -241,7 +239,7 @@ def answer3(call):
     battle[0].inc_quest_count()
     e = battle[0].get_another(call.from_user.id)
 
-    if (curr >= 5):
+    if (curr >= 6):
         # максимальное количество вопросов достигнута
         if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
             bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
@@ -319,7 +317,7 @@ def answer4(call):
     battle[0].inc_quest_count()
     e = battle[0].get_another(call.from_user.id)
 
-    if(curr >= 5):
+    if(curr >= 6):
         # максимальное количество вопросов достигнута
         if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
             bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id), battle[0].get_score(e.from_user.id)), call.from_user.id, call.message.message_id)
@@ -408,8 +406,6 @@ def accept_bet(call):
     bot.answer_callback_query(e.id, text="")
 
 
-##################################    bet
-
 
 def create_choice():
     markup = types.InlineKeyboardMarkup()
@@ -423,6 +419,14 @@ def create_choice():
     row.append(types.InlineKeyboardButton("Подтвердить и начать", callback_data="accept"))
     markup.row(*row)
     return markup
+
+@bot.callback_query_handler(func=lambda message: message.data == 'accept')
+def accept_bet(message):
+    #начло самой игры
+    print("user started the game")
+    markup = create_choice()
+    bot.edit_message_text(your_bet_is.format(str(bet)), message.from_user.id, message.message.message_id, reply_markup=markup)
+    bot.answer_callback_query(message.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_25')
 def change_bet_25(curr_bet):
@@ -452,16 +456,20 @@ def change_bet_200(curr_bet):
     bot.edit_message_text(your_bet_is.format(str(bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
 
-
-##################################
-
-
 @bot.message_handler(commands=['start'])
 def start(message):
+    keyboard_defs.start_keyboard(message)
     connection = get_db_connection(DBNAME)
     cursor = connection.cursor()
     cursor.execute(queries['user_get'], (message.chat.id,))
     if cursor.fetchone() is None:
+        x = message.text[7:]
+        if x != None:
+            cursor.execute(queries['referal_insert'], (x, message.chat.id))
+            bot.send_message(x, "Привет, твой друг: "+message.chat.username+""" перешёл по твоей ссылке! 
+    теперь у тебя n приглашений, ещё
+    x до очистки рекламы
+    m до снятия комиссии""")
         # Создание нумерации пользователей
         cursor.execute('SELECT max(id) FROM users')
         max_id = cursor.fetchone()[0]
@@ -476,7 +484,7 @@ def start(message):
         # Запись пользователя в базу
         money = 0
         rating = 0
-        referal = "0000000000"
+        referal = message.chat.id
         cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.username, money, referal, rating))
         connection.commit()
 
@@ -508,7 +516,7 @@ def start_handler(message):
     elif message.text == 'Кошелёк':
         keyboard_defs.wallet_keyboard(message)
         money = str(defs.get_money(message))
-        bot.send_message(message.chat.id, 'На твоём счету   ' + money + '   BrainCoin-ов')
+        bot.send_message(message.chat.id, 'На твоём счету   ' + money + ' BrainCoin-ов')
     elif message.text == 'Ввести':
         earn = 100
         money = defs.get_money(message)
@@ -516,13 +524,13 @@ def start_handler(message):
         bot.send_message(message.chat.id, 'Ты пополнил кошелёк на 100')
     elif message.text == 'Вывести':
         bot.send_message(message.chat.id, 'Упс... Кажется эта функция пока не доступна.')
+    elif message.text == 'Хочешь больше?':
+        keyboard_defs.freecoins_menu(message)
+    elif message.text == 'Пригласить друга':
+        bot.send_message(message.chat.id, """Твоя персональная ссылка:
+https://telegram.me/Crypto_Shit_Fucking_bot?start="""+str(message.chat.id))
     else:
         bot.send_message(message.chat.id, "Ты ввёл что-то не то =( =( =(")
-
-    print(defs.random_user(message))
-    print(defs.ques_9())
-
-
 
 
 """x = time.time()

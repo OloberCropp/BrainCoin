@@ -5,13 +5,12 @@ import defs
 import keyboard_defs
 from telebot import types
 
-bot = telebot.TeleBot(const.token)
+bot = telebot.TeleBot(const.token2)
 
 # const for battle
 
 welcome_text = """Ваш противник {}"""
 your_bet_is = """Ваша ставка - {}"""
-
 
 
 def create_choice():
@@ -22,6 +21,7 @@ def create_choice():
     row.append(types.InlineKeyboardButton("200", callback_data="bet_200"))
     markup.row(*row)
     return markup
+
 
 def create_table_vote(num):
     markup = types.InlineKeyboardMarkup()
@@ -63,9 +63,9 @@ class Battle:
 
         self.first_player = message.chat.id
         self.name_fp = message.chat.username
-        #get_user = defs.random_user(message)
-        self.second_player = s_us[0]#get_user[0] #get id
-        self.name_sp = s_us[1]#get_user[1] #get username
+        # get_user = defs.random_user(message)
+        self.second_player = s_us[0]  # get_user[0] #get id
+        self.name_sp = s_us[1]  # get_user[1] #get username
         self.sp_call = s_us[2]
 
         bot.send_message(self.first_player, welcome_text.format(self.name_sp))
@@ -79,15 +79,15 @@ class Battle:
 
         self.nine_questions = defs.ques_9()
 
-        #self.fp_ready = 0
-        #self.sp_ready = 0
+        # self.fp_ready = 0
+        # self.sp_ready = 0
 
-        #self.tema1 = "Не выбрана"
-        #self.tema2 = "Не выбрана"
-        #self.tema3 = "Не выбрана"
-        #self.temaN = "Её выбирает соперник"
+        # self.tema1 = "Не выбрана"
+        # self.tema2 = "Не выбрана"
+        # self.tema3 = "Не выбрана"
+        # self.temaN = "Её выбирает соперник"
 
-        #self.start_battle()
+        # self.start_battle()
 
     def set_id(self, call):
         if self.first_player == call.message.chat.id:
@@ -131,27 +131,20 @@ class Battle:
         else:
             return False
 
-
     x = """
     def set_fp_theme_id(self, id):
         self.fp_theme_id = id
-
     def set_sp_theme_id(self, id):
         self.sp_theme_id = id
-
     def start_battle(self):
         # выводим выбор категорий
         x = random.randrange(0, 2, 1)
-
         print(x)
-
         if x == 0:
             markup1 = create_table_vote(0)
             markup2 = create_table_vote(1)
-
             self.fp_num = 0
             self.sp_num = 1
-
             bot.send_message(self.first_player,
                              "Первая тема - {}\nВторая тема - {}\nТретья тема - {}".format(self.tema1, self.temaN, self.tema3),
                              reply_markup=markup1)
@@ -161,27 +154,24 @@ class Battle:
         else:
             markup1 = create_table_vote(0)
             markup2 = create_table_vote(1)
-
             self.fp_num = 1
             self.sp_num = 0
-
             bot.send_message(self.second_player,
                              "Первая тема - {}\nВторая тема - {}\nТретья тема - {}".format(self.tema1, self.temaN, self.tema3),
                              reply_markup=markup1)
             bot.send_message(self.first_player,
                              "Первая тема - {}\nВторая тема - {}\nТретья тема - {}".format(self.temaN, self.tema2, self.temaN),
                              reply_markup=markup2)
-
         # выводим кнопк
         """
+
+
 hui = """
 @bot.message_handler(commands=['start'])
 def start(message):
     #const.map[message] = [message.chat.username, 0]
     keyboard_defs.start_keyboard(message)
-
 ############################################
-
 def sender(u_id, message_id, num, t_id):
     markup = create_table_vote(num)
     bot.edit_message_text(const.theme.format(const.battle_array.get(u_id).tema1,
@@ -189,7 +179,6 @@ def sender(u_id, message_id, num, t_id):
                                              const.battle_array.get(u_id).tema3),
                           u_id, message_id, reply_markup=markup)
     bot.answer_callback_query(t_id, text="")
-
 @bot.callback_query_handler(func=lambda theme: theme.data[0:7] == 'set_1_t')
 def change_1_theme(theme):
     const.battle_array.get(theme.from_user.id).tema1 = theme.data[7:]
@@ -200,7 +189,6 @@ def change_1_theme(theme):
                           theme.from_user.id, theme.message.message_id, reply_markup=markup)
     bot.answer_callback_query(theme.id, text="")
     #sender(theme.from_user.id, theme.message.message_id, 1, theme.id)
-
 @bot.callback_query_handler(func=lambda theme: theme.data[0:7] == 'set_2_t')
 def change_2_theme(theme):
     const.battle_array.get(theme.from_user.id).tema2 = theme.data[7:]
@@ -211,7 +199,6 @@ def change_2_theme(theme):
                           theme.from_user.id, theme.message.message_id, reply_markup=markup)
     bot.answer_callback_query(theme.id, text="")
     #sender(theme.from_user.id, theme.message.message_id, 0, theme.id)
-
 @bot.callback_query_handler(func=lambda theme: theme.data[0:7] == 'set_3_t')
 def change_3_theme(theme):
     const.battle_array.get(theme.from_user.id).tema3 = theme.data[7:]
@@ -222,30 +209,25 @@ def change_3_theme(theme):
                           theme.from_user.id, theme.message.message_id, reply_markup=markup)
     bot.answer_callback_query(theme.id, text="")
     #sender(theme.from_user.id, theme.message.message_id, 1, theme.id)
-
 ##############################################
-
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_50')
 def change_bet_50(curr_bet):
     const.bet = 50
     markup = create_choice()
     bot.edit_message_text(your_bet_is.format(str(const.bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
-
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_100')
 def change_bet_50(curr_bet):
     const.bet = 100
     markup = create_choice()
     bot.edit_message_text(your_bet_is.format(str(const.bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
-
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_200')
 def change_bet_50(curr_bet):
     const.bet = 200
     markup = create_choice()
     bot.edit_message_text(your_bet_is.format(str(const.bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
-
 @bot.message_handler(content_types='text')
 def start_handler(message):
     if message.text == 'Заработать':
@@ -265,12 +247,7 @@ def start_handler(message):
         except:
             pass
         keyboard_defs.start_keyboard(message)
-
-
-
-
 if __name__ == '__main__':
     bot.polling(none_stop=True)
-    
-"""
 
+"""
