@@ -5,6 +5,7 @@ import defs
 import keyboard_defs
 from telebot import types
 
+
 bot = telebot.TeleBot(const.token2)
 
 # const for battle
@@ -47,6 +48,7 @@ def create_table_vote(num):
         markup.row(*row)
 
     return markup
+
 
 
 class Battle:

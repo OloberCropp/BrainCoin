@@ -43,6 +43,8 @@ def get_db_connection(dbname):
 
 bot = telebot.TeleBot(const.token2)
 
+bot.remove_webhook()
+
 connection = get_db_connection('main.db')
 connection.execute(queries['table_users_create'])
 connection.execute(queries['table_question_create'])
@@ -92,8 +94,10 @@ def accept_bet(call):
         const.map.append([call.message.chat.id, call.message.chat.username, call])
 
         #изменение текста на "Поиск соперника"
+        bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
+        bot.answer_callback_query(call.id, text="")
         return
-    else:
+    elif const.map[0][0] != call.message.chat.id:
 
         x = Battle(call.message, const.map[0])
         try:

@@ -69,7 +69,7 @@ def answer(call, num):
     # объект класса битвы [0]
     battle = const.battle_array.get(call.message.chat.id)
 
-    if battle[0].nine_questions[battle[1]][3+num] == battle[0].nine_questions[battle[1]][7]:
+    if battle[0].nine_questions[battle[1]][2+num] == battle[0].nine_questions[battle[1]][7]:
         # добавляем очков
         battle[0].inc_score(call.message.chat.id)
         # поставить таймер и отсчитывать 3 секунды, показывая сообщение "Правильно"
