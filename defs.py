@@ -2,6 +2,7 @@ import telebot
 import const
 import random
 import index
+import time
 import keyboard_defs
 from index import get_db_connection, DBNAME, queries
 
@@ -19,42 +20,139 @@ def ques_9():
 
 def end_path(call, e, battle):
     # максимальное количество вопросов достигнута
-    if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
-        bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
-                                                   battle[0].get_score(e.from_user.id)), call.from_user.id,
-                              call.message.message_id)
-        bot.answer_callback_query(call.id, text="")
 
-        # отправить следующий вопрос соперникy
+    # удаляем ник противника и глём гифку
+    #bot.delete_message(call.message.chat.id, call.message.message_id)
+    #bot.delete_message(e.message.chat.id, e.message.message_id)
 
-        bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id),
-                                                   battle[0].get_score(call.from_user.id)), e.from_user.id,
-                              e.message.message_id)
-        bot.answer_callback_query(e.id, text="")
-    elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
-        bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
-                                                   battle[0].get_score(e.from_user.id)), call.from_user.id,
-                              call.message.message_id)
-        bot.answer_callback_query(call.id, text="")
+    if battle[0].cur_bet == 0:
+        if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
+            upd_money(call.message, get_money(call.message), battle[0].cur_bet)
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id), ""), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
 
-        # отправить следующий вопрос соперникy
+            #bot.send_document(call.message.chat.id, "psv4.userapi.com/c623800/u164561303/docs/d2/ead9a6f46e5c/Bez-Imeni-1-Vosstanovleno.gif")
 
-        bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
-                                                   battle[0].get_score(call.from_user.id)), e.from_user.id,
-                              e.message.message_id)
-        bot.answer_callback_query(e.id, text="")
+            # отправить следующий вопрос соперникy
+            upd_money(e.message, get_money(e.message), -1 * battle[0].cur_bet)
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id), ""), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+
+
+            #bot.send_document(e.message.chat.id, "psv4.userapi.com/c623800/u164561303/docs/d3/26b8c05d7730/Bez-Imeni-1.gif")
+
+        elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
+
+            upd_money(call.message, get_money(call.message), -1 * battle[0].cur_bet)
+
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id), ""), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+
+            #bot.send_document(call.message.chat.id, "psv4.userapi.com/c623800/u164561303/docs/d3/26b8c05d7730/Bez-Imeni-1.gif")
+
+
+            # отправить следующий вопрос соперникy
+
+            upd_money(e.message, get_money(e.message), battle[0].cur_bet)
+
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id), ""), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+
+            #bot.send_document(e.message.chat.id, "psv4.userapi.com/c623800/u164561303/docs/d2/ead9a6f46e5c/Bez-Imeni-1-Vosstanovleno.gif")
+
+        else:
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id), ""), call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id), ""), e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
     else:
-        bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
-                                                   battle[0].get_score(e.from_user.id)), call.from_user.id,
-                              call.message.message_id)
-        bot.answer_callback_query(call.id, text="")
+        if battle[0].get_score(call.from_user.id) > battle[0].get_score(e.from_user.id):
+            upd_money(call.message, get_money(call.message), battle[0].cur_bet)
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id),
+                                                       "Теперь ваш баланс - {} Braincoins".format(
+                                                           get_money(call.message))),
+                                  call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
 
-        # отправить следующий вопрос соперникy
+            # bot.send_document(call.message.chat.id, "psv4.userapi.com/c623800/u164561303/docs/d2/ead9a6f46e5c/Bez-Imeni-1-Vosstanovleno.gif")
 
-        bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
-                                                   battle[0].get_score(call.from_user.id)), e.from_user.id,
-                              e.message.message_id)
-        bot.answer_callback_query(e.id, text="")
+            # отправить следующий вопрос соперникy
+            upd_money(e.message, get_money(e.message), -1 * battle[0].cur_bet)
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id),
+                                                       "Теперь ваш баланс - {} Braincoins".format(
+                                                           get_money(e.message))),
+                                  e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+
+            # bot.send_document(e.message.chat.id, "psv4.userapi.com/c623800/u164561303/docs/d3/26b8c05d7730/Bez-Imeni-1.gif")
+
+        elif battle[0].get_score(call.from_user.id) < battle[0].get_score(e.from_user.id):
+
+            upd_money(call.message, get_money(call.message), -1 * battle[0].cur_bet)
+
+            bot.edit_message_text(const.end_str.format(const.lose, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id),
+                                                       "Теперь ваш баланс - {} Braincoins".format(
+                                                           get_money(call.message))),
+                                  call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # bot.send_document(call.message.chat.id, "psv4.userapi.com/c623800/u164561303/docs/d3/26b8c05d7730/Bez-Imeni-1.gif")
+
+            # отправить следующий вопрос соперникy
+
+            upd_money(e.message, get_money(e.message), battle[0].cur_bet)
+
+            bot.edit_message_text(const.end_str.format(const.win, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id),
+                                                       "Теперь ваш баланс - {} Braincoins".format(
+                                                           get_money(e.message))),
+                                  e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
+
+            # bot.send_document(e.message.chat.id, "psv4.userapi.com/c623800/u164561303/docs/d2/ead9a6f46e5c/Bez-Imeni-1-Vosstanovleno.gif")
+
+        else:
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(call.from_user.id),
+                                                       battle[0].get_score(e.from_user.id),
+                                                       "Теперь ваш баланс - {} Braincoins".format(
+                                                           get_money(call.message))),
+                                  call.from_user.id,
+                                  call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+            # отправить следующий вопрос соперникy
+
+            bot.edit_message_text(const.end_str.format(const.ne_vam_ne_nam, battle[0].get_score(e.from_user.id),
+                                                       battle[0].get_score(call.from_user.id),
+                                                       "Теперь ваш баланс - {} Braincoins".format(
+                                                           get_money(e.message))),
+                                  e.from_user.id,
+                                  e.message.message_id)
+            bot.answer_callback_query(e.id, text="")
 
     try:
         const.battle_array.pop(call.message.chat.id)
@@ -72,8 +170,14 @@ def answer(call, num):
     if battle[0].nine_questions[battle[1]][2+num] == battle[0].nine_questions[battle[1]][7]:
         # добавляем очков
         battle[0].inc_score(call.message.chat.id)
+        bot.edit_message_text("Вы выбрали правильный ответ.", call.from_user.id, call.message.message_id)
+        bot.answer_callback_query(call.id, text="")
+        time.sleep(2)
         # поставить таймер и отсчитывать 3 секунды, показывая сообщение "Правильно"
     else:
+        bot.edit_message_text("Вы ошиблись, праильный ответ - '" + battle[0].nine_questions[battle[1]][7] + "'.", call.from_user.id, call.message.message_id)
+        bot.answer_callback_query(call.id, text="")
+        time.sleep(2)
         # показать правильный ответ
         pass
 
