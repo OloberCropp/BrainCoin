@@ -78,17 +78,16 @@ def answer(call, num):
         pass
 
     curr = const.battle_array.get(call.message.chat.id)[1]
-    print(curr)
     e = battle[0].get_another(call.from_user.id)
 
-    if (curr == 4):
+    if (curr == const.count_questions):
         end_path(call, e, battle)
     else:
         battle[0].set_ready(call.message.chat.id)
 
         if battle[0].is_two_ready():
             battle[0].inc_quest_count()
-            if const.battle_array.get(call.message.chat.id)[1] == 4:
+            if const.battle_array.get(call.message.chat.id)[1] == const.count_questions:
                 end_path(call, e, battle)
             # отправить следующий вопрос себе
             markup = index.create_question(battle[0].nine_questions, battle[1])

@@ -212,14 +212,14 @@ def start(message):
         cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.username, money, referal, rating))
         connection.commit()
 
-        print(message.chat.username, ' начал(-ла) игру')
+        print(message.chat.username, 'started the bot.')
         bot.send_message(message.chat.id, 'Привет, ' + message.chat.username + texts.Start_text )
 
     else:
         bot.send_message(message.chat.id, 'Загружаю твой прогресс...')
         cursor.close()
         connection.close()
-        print(message.chat.username, 'Запустил(-ла ) бота')
+        print(message.chat.username, 'started the bot')
     keyboard_defs.start_keyboard(message)
 
 @bot.message_handler(content_types='text')
