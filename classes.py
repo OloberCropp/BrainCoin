@@ -53,11 +53,11 @@ def create_table_vote(num):
 
 class Battle:
 
-    def __init__(self, message, s_us):
+    def __init__(self, message, s_us, bet):
         # убрать пользователя из базы ищущих игру
         # s_us = id, username, call
-        const.battle_array.update({s_us[0]: [self, 0]})
 
+        self.cur_bet = bet
         self.first_player = message.chat.id
         self.name_fp = message.chat.username
         # get_user = defs.random_user(message)
@@ -70,6 +70,7 @@ class Battle:
 
         self.fp_score = 0
         self.sp_score = 0
+
 
         self.fp_ready = 0
         self.sp_ready = 0

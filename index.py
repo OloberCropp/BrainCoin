@@ -4,7 +4,7 @@ import const
 import defs
 import texts
 import sqlite3
-import random
+import threading
 from telebot import types
 from classes import Battle
 
@@ -72,113 +72,308 @@ def create_question(cur_quests, num):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer1')
 def answer1(call):
+    const.users_time.update({call.from_user.id: 0})
     defs.answer(call, 1)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer2')
 def answer2(call):
+    const.users_time.update({call.from_user.id: 0})
     defs.answer(call, 2)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer3')
 def answer3(call):
+    const.users_time.update({call.from_user.id: 0})
     defs.answer(call, 3)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer4')
 def answer4(call):
+    const.users_time.update({call.from_user.id: 0})
     defs.answer(call, 4)
+
+
 
 @bot.callback_query_handler(func=lambda call: call.data == 'accept')
 def accept_bet(call):
     #начaло самой игры
     print("user started the game")
+    try:
+        bet = const.in_game[call.message.chat.id]
+    except:
+        bet = 25
 
-    if len(const.map) == 0:
-        const.map.append([call.message.chat.id, call.message.chat.username, call])
+    if bet == 25:
+        if defs.get_money(call.message) >= 25:
+            const.users_time.update({call.from_user.id: 0})
+            if len(const.map_25) == 0:
+                const.map_25.append([call.message.chat.id, call.message.chat.username, call])
+
+                #изменение текста на "Поиск соперника"
+                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
+                bot.answer_callback_query(call.id, text="")
+                return
+            elif const.map_25[0][0] != call.message.chat.id:
+
+                x = Battle(call.message, const.map_25[0], 25)
+                const.battle_array.update({call.message.chat.id: [x, 0]})
+                const.battle_array.update({const.map_25[0][0]: [x, 0]})
+
+                battle = const.battle_array.get(call.message.chat.id)
+                battle[0].set_id(call)
+                battle[0].set_id(const.map_25[0][2])
+
+                try:
+                    const.map_25.remove(const.map_25[0])
+                except:
+                    pass
+
+                # отправка сообщения сопернику
+
+                e = battle[0].get_another(call.from_user.id)
+
+                const.users_time.update({call.from_user.id: 1})
+                my_thread1 = threading.Thread(target=defs.counter_time, args=(call,))
+                my_thread1.start()
+                # print("ya tut")
+                # bot.edit_message_text(battle[0].nine_questions[battle[1]][1], call.from_user.id, call.message.message_id,
+                #                      reply_markup=markup)
+                # bot.answer_callback_query(call.id, text="")
+
+                # отправить следующий вопрос соперника
+                const.users_time.update({e.from_user.id: 1})
+                my_thread2 = threading.Thread(target=defs.counter_time, args=(e,))
+                my_thread2.start()
+        else:
+            bot.edit_message_text("Маловато у тебя Braincoin, для такой ставки.", call.from_user.id, call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+    elif bet == 50:
+        if defs.get_money(call.message) >= 50:
+            const.users_time.update({call.from_user.id: 0})
+            if len(const.map_50) == 0:
+                const.map_50.append([call.message.chat.id, call.message.chat.username, call])
+
+                # изменение текста на "Поиск соперника"
+                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
+                bot.answer_callback_query(call.id, text="")
+                return
+            elif const.map_50[0][0] != call.message.chat.id:
+
+                x = Battle(call.message, const.map_50[0], 50)
+                const.battle_array.update({call.message.chat.id: [x, 0]})
+                const.battle_array.update({const.map_50[0][0]: [x, 0]})
+
+                battle = const.battle_array.get(call.message.chat.id)
+                battle[0].set_id(call)
+                battle[0].set_id(const.map_50[0][2])
+
+                try:
+                    const.map_50.remove(const.map_50[0])
+                except:
+                    pass
+
+                # отправка сообщения сопернику
+
+                e = battle[0].get_another(call.from_user.id)
+
+                const.users_time.update({call.from_user.id: 1})
+                my_thread1 = threading.Thread(target=defs.counter_time, args=(call,))
+                my_thread1.start()
+                # print("ya tut")
+                # bot.edit_message_text(battle[0].nine_questions[battle[1]][1], call.from_user.id, call.message.message_id,
+                #                      reply_markup=markup)
+                # bot.answer_callback_query(call.id, text="")
+
+                # отправить следующий вопрос соперника
+                const.users_time.update({e.from_user.id: 1})
+                my_thread2 = threading.Thread(target=defs.counter_time, args=(e,))
+                my_thread2.start()
+        else:
+            bot.edit_message_text("Маловато у тебя Braincoin, для такой ставки, выбери меньше.", call.from_user.id, call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+    elif bet == 100:
+        if defs.get_money(call.message) >= 100:
+            const.users_time.update({call.from_user.id: 0})
+            if len(const.map_100) == 0:
+                const.map_100.append([call.message.chat.id, call.message.chat.username, call])
+
+                # изменение текста на "Поиск соперника"
+                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
+                bot.answer_callback_query(call.id, text="")
+                return
+            elif const.map_100[0][0] != call.message.chat.id:
+
+                x = Battle(call.message, const.map_100[0], 100)
+                const.battle_array.update({call.message.chat.id: [x, 0]})
+                const.battle_array.update({const.map_100[0][0]: [x, 0]})
+
+                battle = const.battle_array.get(call.message.chat.id)
+                battle[0].set_id(call)
+                battle[0].set_id(const.map_100[0][2])
+
+                try:
+                    const.map_100.remove(const.map_100[0])
+                except:
+                    pass
+
+                # отправка сообщения сопернику
+
+                e = battle[0].get_another(call.from_user.id)
+
+                const.users_time.update({call.from_user.id: 1})
+                my_thread1 = threading.Thread(target=defs.counter_time, args=(call,))
+                my_thread1.start()
+                # print("ya tut")
+                # bot.edit_message_text(battle[0].nine_questions[battle[1]][1], call.from_user.id, call.message.message_id,
+                #                      reply_markup=markup)
+                # bot.answer_callback_query(call.id, text="")
+
+                # отправить следующий вопрос соперника
+                const.users_time.update({e.from_user.id: 1})
+                my_thread2 = threading.Thread(target=defs.counter_time, args=(e,))
+                my_thread2.start()
+        else:
+            bot.edit_message_text("Маловато у тебя Braincoin, для такой ставки, выбери меньше.", call.from_user.id, call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+    elif bet == 200:
+        if defs.get_money(call.message) >= 200:
+            const.users_time.update({call.from_user.id: 0})
+            if len(const.map_200) == 0:
+                const.map_200.append([call.message.chat.id, call.message.chat.username, call])
+
+                # изменение текста на "Поиск соперника"
+                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
+                bot.answer_callback_query(call.id, text="")
+                return
+            elif const.map_200[0][0] != call.message.chat.id:
+
+                x = Battle(call.message, const.map_200[0], 200)
+                const.battle_array.update({call.message.chat.id: [x, 0]})
+                const.battle_array.update({const.map_200[0][0]: [x, 0]})
+
+                battle = const.battle_array.get(call.message.chat.id)
+                battle[0].set_id(call)
+                battle[0].set_id(const.map_200[0][2])
+
+                try:
+                    const.map_200.remove(const.map_200[0])
+                except:
+                    pass
+
+                # отправка сообщения сопернику
+
+                e = battle[0].get_another(call.from_user.id)
+
+                const.users_time.update({call.from_user.id: 1})
+                my_thread1 = threading.Thread(target=defs.counter_time, args=(call,))
+                my_thread1.start()
+                # print("ya tut")
+                # bot.edit_message_text(battle[0].nine_questions[battle[1]][1], call.from_user.id, call.message.message_id,
+                #                      reply_markup=markup)
+                # bot.answer_callback_query(call.id, text="")
+
+                # отправить следующий вопрос соперника
+                const.users_time.update({e.from_user.id: 1})
+                my_thread2 = threading.Thread(target=defs.counter_time, args=(e,))
+                my_thread2.start()
+        else:
+            bot.edit_message_text("Маловато у тебя Braincoin, для такой ставки, выбери меньше.", call.from_user.id, call.message.message_id)
+            bot.answer_callback_query(call.id, text="")
+
+
+@bot.callback_query_handler(func=lambda call: call.data == 'accept_free')
+def accept_bet(call):
+    #начaло самой игры
+    print("user started the free game")
+
+    if len(const.map_free) == 0:
+        const.map_free.append([call.message.chat.id, call.message.chat.username, call])
 
         #изменение текста на "Поиск соперника"
         bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
         bot.answer_callback_query(call.id, text="")
         return
-    elif const.map[0][0] != call.message.chat.id:
+    elif const.map_free[0][0] != call.message.chat.id:
 
-        x = Battle(call.message, const.map[0])
+        x = Battle(call.message, const.map_free[0], 0)
+        const.battle_array.update({call.message.chat.id: [x, 0]})
+        const.battle_array.update({const.map_free[0][0]: [x, 0]})
+
+        battle = const.battle_array.get(call.message.chat.id)
+        battle[0].set_id(call)
+        battle[0].set_id(const.map_free[0][2])
+
         try:
-            const.map.remove(const.map[0])
+            const.map_200.remove(const.map_200[0])
         except:
             pass
 
-        const.battle_array.update({call.message.chat.id: [x, 0]})
+        # отправка сообщения сопернику
 
-        markup = create_question(const.battle_array.get(call.message.chat.id)[0].nine_questions,
-                                 const.battle_array.get(call.message.chat.id)[1])
-        bat = const.battle_array.get(call.message.chat.id)
+        e = battle[0].get_another(call.from_user.id)
 
-        bat[0].set_id(call)
+        const.users_time.update({call.from_user.id: 1})
+        my_thread1 = threading.Thread(target=defs.counter_time, args=(call,))
+        my_thread1.start()
+        # print("ya tut")
+        # bot.edit_message_text(battle[0].nine_questions[battle[1]][1], call.from_user.id, call.message.message_id,
+        #                      reply_markup=markup)
+        # bot.answer_callback_query(call.id, text="")
 
-        bot.edit_message_text(bat[0].nine_questions[bat[1]][1], call.from_user.id, call.message.message_id, reply_markup=markup)
-        bot.answer_callback_query(call.id, text="")
+        # отправить следующий вопрос соперника
+        const.users_time.update({e.from_user.id: 1})
+        my_thread2 = threading.Thread(target=defs.counter_time, args=(e,))
+        my_thread2.start()
 
-        #отправка сообщения сопернику
-
-        e = bat[0].get_another(call.from_user.id)
-
-        bot.edit_message_text(bat[0].nine_questions[bat[1]][1], e.from_user.id, e.message.message_id,
-                              reply_markup=markup)
-        bot.answer_callback_query(e.id, text="")
-
-
-
-def create_choice():
-    markup = types.InlineKeyboardMarkup()
-    row = []
-    row.append(types.InlineKeyboardButton("25", callback_data="bet_25"))
-    row.append(types.InlineKeyboardButton("50", callback_data="bet_50"))
-    row.append(types.InlineKeyboardButton("100", callback_data="bet_100"))
-    row.append(types.InlineKeyboardButton("200", callback_data="bet_200"))
-    markup.row(*row)
-    row = []
-    row.append(types.InlineKeyboardButton("Подтвердить и начать", callback_data="accept"))
-    markup.row(*row)
+def create_choice(num):
+    if num == 0:
+        markup = types.InlineKeyboardMarkup()
+        row = []
+        row.append(types.InlineKeyboardButton("25", callback_data="bet_25"))
+        row.append(types.InlineKeyboardButton("50", callback_data="bet_50"))
+        row.append(types.InlineKeyboardButton("100", callback_data="bet_100"))
+        row.append(types.InlineKeyboardButton("200", callback_data="bet_200"))
+        markup.row(*row)
+        row = []
+        row.append(types.InlineKeyboardButton("Подтвердить и начать", callback_data="accept"))
+        markup.row(*row)
+    else:
+        markup = types.InlineKeyboardMarkup()
+        row = []
+        row.append(types.InlineKeyboardButton("Начать поиск игры", callback_data="accept_free"))
+        markup.row(*row)
     return markup
 
-@bot.callback_query_handler(func=lambda message: message.data == 'accept')
-def accept_bet(message):
-    #начло самой игры
-    print("user started the game")
-    markup = create_choice()
-    bot.edit_message_text(your_bet_is.format(str(bet)), message.from_user.id, message.message.message_id, reply_markup=markup)
-    bot.answer_callback_query(message.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_25')
 def change_bet_25(curr_bet):
-    bet = 25
-    markup = create_choice()
-    bot.edit_message_text(your_bet_is.format(str(bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
+    const.in_game.update({curr_bet.message.chat.id: 25})
+    markup = create_choice(0)
+    bot.edit_message_text(your_bet_is.format(25), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_50')
 def change_bet_50(curr_bet):
-    bet = 50
-    markup = create_choice()
-    bot.edit_message_text(your_bet_is.format(str(bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
+    const.in_game.update({curr_bet.message.chat.id: 50})
+    markup = create_choice(0)
+    bot.edit_message_text(your_bet_is.format(50), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_100')
 def change_bet_100(curr_bet):
-    bet = 100
-    markup = create_choice()
-    bot.edit_message_text(your_bet_is.format(str(bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
+    const.in_game.update({curr_bet.message.chat.id: 100})
+    markup = create_choice(0)
+    bot.edit_message_text(your_bet_is.format(100), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_200')
 def change_bet_200(curr_bet):
-    bet = 200
-    markup = create_choice()
-    bot.edit_message_text(your_bet_is.format(str(bet)), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
+    const.in_game.update({curr_bet.message.chat.id: 200})
+    markup = create_choice(0)
+    bot.edit_message_text(your_bet_is.format(200), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    keyboard_defs.start_keyboard(message)
+    #keyboard_defs.start_keyboard(message)
     connection = get_db_connection(DBNAME)
     cursor = connection.cursor()
     cursor.execute(queries['user_get'], (message.chat.id,))
@@ -223,6 +418,8 @@ def start(message):
         print(message.chat.username, 'started the bot')
     keyboard_defs.start_keyboard(message)
 
+
+
 @bot.message_handler(content_types='text')
 def start_handler(message):
     if message.text == 'Заработать':
@@ -243,9 +440,12 @@ def start_handler(message):
         keyboard_defs.about_keyboard(message)
     elif message.text == 'Назад':
         keyboard_defs.start_keyboard(message)
+    elif message.text == 'Игра':
+        markup = create_choice(1)
+        bot.send_message(message.chat.id, "Ты - бомж. Начни поиск игры...", reply_markup=markup)
     elif message.text == 'Играть':
-        markup = create_choice()
-        bot.send_message(message.chat.id, your_bet_is.format(str(bet)), reply_markup=markup)
+        markup = create_choice(0)
+        bot.send_message(message.chat.id, your_bet_is.format(str(const.bet)), reply_markup=markup)
     elif message.text == 'Кошелёк':
         keyboard_defs.wallet_keyboard(message)
         bot.send_message(message.chat.id, 'На твоём счету   ' + str(defs.get_money(message)) + ' BrainCoin-ов')
