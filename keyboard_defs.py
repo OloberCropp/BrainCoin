@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 import const
 import texts
+from defs import get_rating
 
 bot = telebot.TeleBot(const.token2)
 
@@ -22,20 +23,14 @@ def paymenu_keyboard(message):
 
 def freemenu_keyboard(message):
     murkup = types.ReplyKeyboardMarkup(True, False)
-    murkup.row('Игра', 'Убрать рекламу')
+    murkup.row('Игра')
     murkup.row('Назад')
     bot.send_message(message.chat.id, 'Эклипс', reply_markup=murkup)
-
-def rating_keyboard(message):
-    murkup = types.ReplyKeyboardMarkup(True, False)
-    murkup.row('Моя позиция')
-    murkup.row('Назад')
-    bot.send_message(message.chat.id, 'Дирол', reply_markup=murkup)
 
 def about_keyboard(message):
     murkup = types.ReplyKeyboardMarkup(True, False)
     murkup.row('Пригласить друга')
-    murkup.row('Назад')
+    murkup.row('Написать о проблеме', 'Назад')
     bot.send_message(message.chat.id, texts.about_text, reply_markup=murkup)
 
 def wallet_keyboard(message):
