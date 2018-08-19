@@ -7,6 +7,7 @@ import sqlite3
 import threading
 from telebot import types
 from classes import Battle
+#from html import Markdown
 
 # Запросы
 queries = {
@@ -53,7 +54,7 @@ connection.commit()
 connection.close()
 
 welcome_text = """Ваш противник: {}"""
-your_bet_is = """Ваша ставка: {}"""
+your_bet_is = """Ваша ставка: {} Braincoin-ов"""
 bet = 0
 
 
@@ -323,62 +324,59 @@ def accept_bet(call):
         my_thread2 = threading.Thread(target=defs.counter_time, args=(e,))
         my_thread2.start()
 
-def create_choice(num):
-    if num == 0:
-        markup = types.InlineKeyboardMarkup()
-        row = []
-        row.append(types.InlineKeyboardButton("25", callback_data="bet_25"))
-        row.append(types.InlineKeyboardButton("50", callback_data="bet_50"))
-        row.append(types.InlineKeyboardButton("100", callback_data="bet_100"))
-        row.append(types.InlineKeyboardButton("200", callback_data="bet_200"))
-        markup.row(*row)
-        row = []
-        row.append(types.InlineKeyboardButton("Подтвердить и начать", callback_data="accept"))
-        markup.row(*row)
-    else:
-        markup = types.InlineKeyboardMarkup()
-        row = []
-        row.append(types.InlineKeyboardButton("Начать поиск игры", callback_data="accept_free"))
-        markup.row(*row)
+def create_choice():
+
+    markup = types.InlineKeyboardMarkup()
+    row = []
+    row.append(types.InlineKeyboardButton("0 (На интерес)", callback_data="accept_free"))
+    markup.row(*row)
+    row = []
+    row.append(types.InlineKeyboardButton("25", callback_data="bet_25"))
+    row.append(types.InlineKeyboardButton("50", callback_data="bet_50"))
+    row.append(types.InlineKeyboardButton("100", callback_data="bet_100"))
+    row.append(types.InlineKeyboardButton("200", callback_data="bet_200"))
+    markup.row(*row)
+    row = []
+    row.append(types.InlineKeyboardButton("Подтвердить и начать", callback_data="accept"))
+    markup.row(*row)
+
     return markup
 
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_25')
 def change_bet_25(curr_bet):
     const.in_game.update({curr_bet.message.chat.id: 25})
-    markup = create_choice(0)
+    markup = create_choice()
     bot.edit_message_text(your_bet_is.format(25), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_50')
 def change_bet_50(curr_bet):
     const.in_game.update({curr_bet.message.chat.id: 50})
-    markup = create_choice(0)
+    markup = create_choice()
     bot.edit_message_text(your_bet_is.format(50), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_100')
 def change_bet_100(curr_bet):
     const.in_game.update({curr_bet.message.chat.id: 100})
-    markup = create_choice(0)
+    markup = create_choice()
     bot.edit_message_text(your_bet_is.format(100), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
 
 @bot.callback_query_handler(func=lambda curr_bet: curr_bet.data == 'bet_200')
 def change_bet_200(curr_bet):
     const.in_game.update({curr_bet.message.chat.id: 200})
-    markup = create_choice(0)
+    markup = create_choice()
     bot.edit_message_text(your_bet_is.format(200), curr_bet.from_user.id, curr_bet.message.message_id, reply_markup=markup)
     bot.answer_callback_query(curr_bet.id, text="")
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    #keyboard_defs.start_keyboard(message)
     connection = get_db_connection(DBNAME)
     cursor = connection.cursor()
     cursor.execute(queries['user_get'], (message.chat.id,))
     if cursor.fetchone() is None:
-        print(message.text)
         x = message.text[7:]
         if x != '':
             y = int(defs.ref_get(x))+1
@@ -393,7 +391,6 @@ def start(message):
         cursor = connection.cursor()
         cursor.execute('SELECT max(id) FROM users')
         max_id = cursor.fetchone()[0]
-        print(max_id)
         try:
             if max_id is None:
                 max_id = 0
@@ -403,7 +400,7 @@ def start(message):
 
         # Запись пользователя в базу
         money = 0
-        rating = 0
+        rating = 2000
         referal = 0
         cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.first_name, money, referal, rating))
         connection.commit()
@@ -422,17 +419,12 @@ def start(message):
 
 @bot.message_handler(content_types='text')
 def start_handler(message):
-    if message.text == 'Заработать':
-        keyboard_defs.paymenu_keyboard(message)
-    elif message.text == 'На интерес':
-        keyboard_defs.freemenu_keyboard(message)
-    elif message.text == 'Рейтинг':
+    if message.text == 'Рейтинг':
         f = defs.gl_rate()
         global i
         i = 0
         while message.chat.first_name != f[i][0]:
             i += 1
-
         stri = '1 место: '+f[0][0]+ ' с рейтингом: '+str(f[0][1]) + "\n"+ '2 место: '+ f[1][0]+ ' с рейтингом: '+str(f[1][1]) + "\n" +   '3 место: '+f[2][0]+ ' с рейтингом: '+ str(f[2][1]) + "\n"+ '4 место: '+f[3][0]+ ' с рейтингом: '+str(f[3][1]) + "\n"+ '5 место: '+f[4][0]+ ' с рейтингом: '+str(f[4][1])
         bot.send_message(message.chat.id, stri)
         bot.send_message(message.chat.id, 'Твой рейтинг: ' + str(defs.get_rating(message)) + '\n' + 'Позиция в рейтинге: ' + str(i+1))
@@ -440,13 +432,10 @@ def start_handler(message):
         keyboard_defs.about_keyboard(message)
     elif message.text == 'Назад':
         keyboard_defs.start_keyboard(message)
-    elif message.text == 'Игра':
-        markup = create_choice(1)
-        bot.send_message(message.chat.id, "Ты - бомж. Начни поиск игры...", reply_markup=markup)
-    elif message.text == 'Играть':
-        markup = create_choice(0)
-        bot.send_message(message.chat.id, your_bet_is.format(str(const.bet)), reply_markup=markup)
-    elif message.text == 'Кошелёк':
+    elif message.text == '🏆💯💍   Играть   💍💯🏆':
+        markup = create_choice()
+        bot.send_message(message.chat.id, "Выбери свою ставку чтобы начать ⚔️", reply_markup=markup)
+    elif message.text == '💳 Счёт 💳':
         keyboard_defs.wallet_keyboard(message)
         bot.send_message(message.chat.id, 'На твоём счету   ' + str(defs.get_money(message)) + ' BrainCoin-ов')
     elif message.text == 'Ввести':
@@ -458,7 +447,7 @@ def start_handler(message):
         bot.send_message(message.chat.id, 'Упс... Кажется эта функция пока не доступна.')
     elif message.text == 'Хочешь больше?':
         keyboard_defs.freecoins_menu(message)
-    elif message.text == 'Написать о проблеме':
+    elif message.text == 'Что-то не так?':
         bot.send_message(message.chat.id, """Напиши нашему менеджеру о своей проблеме.
 Это может быть как баг, так и ошибка перевода средств.""")
     elif message.text == 'Пригласить друга':
@@ -467,14 +456,7 @@ https://telegram.me/Crypto_Shit_Fucking_bot?start="""+str(message.chat.id))
 
     else:
         bot.send_message(680328648, 'Сообщение от: ' + message.chat.first_name + """
-         message.text""")
-
-"""x = time.time()
-if x == 120:
-    c = 0
-    x = 0
-Принцип работы таймеров
-"""
+След. содержания: """+message.text)
 
 if __name__ == '__main__':
     bot.polling(none_stop=True)
