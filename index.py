@@ -105,7 +105,7 @@ def accept_bet(call):
         if defs.get_money(call.message) >= 25:
             const.users_time.update({call.from_user.id: 0})
             if len(const.map_25) == 0:
-                const.map_25.append([call.message.chat.id, call.message.chat.username, call])
+                const.map_25.append([call.message.chat.id, call.message.chat.first_name, call])
 
                 #изменение текста на "Поиск соперника"
                 bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
@@ -149,7 +149,7 @@ def accept_bet(call):
         if defs.get_money(call.message) >= 50:
             const.users_time.update({call.from_user.id: 0})
             if len(const.map_50) == 0:
-                const.map_50.append([call.message.chat.id, call.message.chat.username, call])
+                const.map_50.append([call.message.chat.id, call.message.chat.first_name, call])
 
                 # изменение текста на "Поиск соперника"
                 bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
@@ -193,7 +193,7 @@ def accept_bet(call):
         if defs.get_money(call.message) >= 100:
             const.users_time.update({call.from_user.id: 0})
             if len(const.map_100) == 0:
-                const.map_100.append([call.message.chat.id, call.message.chat.username, call])
+                const.map_100.append([call.message.chat.id, call.message.chat.first_name, call])
 
                 # изменение текста на "Поиск соперника"
                 bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
@@ -237,7 +237,7 @@ def accept_bet(call):
         if defs.get_money(call.message) >= 200:
             const.users_time.update({call.from_user.id: 0})
             if len(const.map_200) == 0:
-                const.map_200.append([call.message.chat.id, call.message.chat.username, call])
+                const.map_200.append([call.message.chat.id, call.message.chat.first_name, call])
 
                 # изменение текста на "Поиск соперника"
                 bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
@@ -285,7 +285,7 @@ def accept_bet(call):
     print("user started the free game")
 
     if len(const.map_free) == 0:
-        const.map_free.append([call.message.chat.id, call.message.chat.username, call])
+        const.map_free.append([call.message.chat.id, call.message.chat.first_name, call])
 
         #изменение текста на "Поиск соперника"
         bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
@@ -383,7 +383,7 @@ def start(message):
         if x != '':
             y = int(defs.ref_get(x))+1
             cursor.execute(queries['inc_ref'], (y, x))
-            bot.send_message(x, "Привет, твой друг: "+message.chat.username+""" перешёл по твоей ссылке! 
+            bot.send_message(x, "Привет, твой друг: "+message.chat.first_name+""" перешёл по твоей ссылке! 
 теперь у тебя: """+str(y)+""" приглашений, ещё:
 """+str(5-y)+""" до очистки рекламы, и
 """+str(13-y)+""" до снятия комиссии""")
@@ -405,17 +405,17 @@ def start(message):
         money = 0
         rating = 0
         referal = 0
-        cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.username, money, referal, rating))
+        cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.first_name, money, referal, rating))
         connection.commit()
 
-        print(message.chat.username, 'started the bot.')
-        bot.send_message(message.chat.id, 'Привет, ' + message.chat.username + texts.Start_text )
+        print(message.chat.first_name, 'started the bot.')
+        bot.send_message(message.chat.id, 'Привет, ' + message.chat.first_name + texts.Start_text )
 
     else:
         bot.send_message(message.chat.id, 'Загружаю твой прогресс...')
         cursor.close()
         connection.close()
-        print(message.chat.username, 'started the bot')
+        print(message.chat.first_name, 'started the bot')
     keyboard_defs.start_keyboard(message)
 
 
@@ -430,7 +430,7 @@ def start_handler(message):
         f = defs.gl_rate()
         global i
         i = 0
-        while message.chat.username != f[i][0]:
+        while message.chat.first_name != f[i][0]:
             i += 1
 
         stri = '1 место: '+f[0][0]+ ' с рейтингом: '+str(f[0][1]) + "\n"+ '2 место: '+ f[1][0]+ ' с рейтингом: '+str(f[1][1]) + "\n" +   '3 место: '+f[2][0]+ ' с рейтингом: '+ str(f[2][1]) + "\n"+ '4 место: '+f[3][0]+ ' с рейтингом: '+str(f[3][1]) + "\n"+ '5 место: '+f[4][0]+ ' с рейтингом: '+str(f[4][1])
@@ -466,7 +466,7 @@ def start_handler(message):
 https://telegram.me/Crypto_Shit_Fucking_bot?start="""+str(message.chat.id))
 
     else:
-        bot.send_message(680328648, 'Сообщение от: ' + message.chat.username + """
+        bot.send_message(680328648, 'Сообщение от: ' + message.chat.first_name + """
          message.text""")
 
 """x = time.time()
