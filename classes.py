@@ -1,12 +1,10 @@
-import random
-import telebot
+#import random
 import const
 import defs
-import keyboard_defs
 from telebot import types
+import telebot
 
-
-bot = telebot.TeleBot(const.token2)
+bot = telebot.TeleBot(const.API_TOKEN)
 
 # const for battle
 
@@ -76,6 +74,10 @@ class Battle:
         self.sp_ready = 0
 
         self.nine_questions = defs.ques_9()
+
+
+
+
 
         # self.fp_ready = 0
         # self.sp_ready = 0
