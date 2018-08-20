@@ -12,12 +12,27 @@ bot = telebot.TeleBot(const.API_TOKEN)
 global rating
 
 
-def ques_9():
+def pquest(message):
     connection = get_db_connection(DBNAME)
     cursor = connection.cursor()
-    cursor.execute(queries['Rand_q'])
-    return cursor.fetchall()
+    cursor.execute(queries['pquest_num_get'],(message.chat.id,))
+    q_id = cursor.fetchone()[0]
+    cursor.execute(queries['random_question'], (q_id,q_id+5))
+    x = cursor.fetchall()
+    cursor.execute(queries['pquest_num_upd'], (q_id,))
+    connection.commit()
+    return x
 
+def fquest(message):
+    connection = get_db_connection(DBNAME)
+    cursor = connection.cursor()
+    cursor.execute(queries['fquest_num_get'],(message.chat.id,))
+    q_id = cursor.fetchone()[0]
+    cursor.execute(queries['random_question'], (q_id,q_id+5))
+    x = cursor.fetchall()
+    cursor.execute(queries['fquest_num_upd'], (q_id,))
+    connection.commit()
+    return x
 
 def counter_time(call):
     battle = const.battle_array.get(call.message.chat.id)

@@ -7,15 +7,14 @@ import sqlite3
 import threading
 from telebot import types
 from classes import Battle
-import flask
+#import flask
 import requests
-from flask import request
+#from flask import request
 import time
-
 
 # Запросы
 queries = {
-    'table_users_create': "CREATE TABLE IF NOT EXISTS users (id INTEGER, chat_id INTEGER, username INTEGER, money INTEGER, referal INTEGER, rating INTEGER)",
+    'table_users_create': "CREATE TABLE IF NOT EXISTS users (id INTEGER, chat_id INTEGER, username INTEGER, money INTEGER, referal INTEGER, rating INTEGER, payedquest INTEGER, freequest INTEGER)",
     'table_question_create': "CREATE TABLE IF NOT EXISTS questions (id INTEGER, category VARCHAR(32), question VARCHAR(128), ans1 VARCHAR, ans2 VARCHAR, ans3 VARCHAR, ans4 VARCHAR, right_ansver VARCHAR)",
     'rating_update': "UPDATE users SET rating = ? WHERE chat_id = ?",
     'money_update': "UPDATE users SET money = ? WHERE chat_id = ?",
@@ -23,18 +22,19 @@ queries = {
     'rating_get': "SELECT rating FROM users WHERE chat_id =?",
     'money_get': "SELECT money FROM users WHERE chat_id =?",
     'referal_get': "SELECT referal FROM users WHERE chat_id =?",
-    'user_insert': "INSERT INTO users VALUES (?, ?, ?, ?, ?, ?)",
-    'user_delete': "DELETE FROM users WHERE chat_id = ?",
+    'user_insert': "INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     'user_get': "SELECT * FROM users WHERE chat_id = ?",
-    'users_get': "SELECT * FROM users",
-    'random_usname_chat_id': "SELECT chat_id, username FROM users WHERE id = ? AND NOT chat_id = ?",
     'my_chat_id': "SELECT id FROM users WHERE chat_id = ?",
     'max_id': "SELECT max(id) FROM users",
     'max_ques_id': "SELECT max(id) FROM questions",
-    'random_question': "SELECT * FROM questions WHERE id = ?",
+    'random_question': "SELECT * FROM questions WHERE id >= ? AND id < ?",
     'Rand_q': "SELECT * FROM questions WHERE id IN (SELECT id FROM questions ORDER BY RANDOM() LIMIT 5)",
-    'inc_ref': "UPDATE users SET referal=? WHERE chat_id=?",
-    'gl_rate': "SELECT username, rating FROM users ORDER BY rating DESC"
+    'inc_ref': "UPDATE users SET referal=referal+1 WHERE chat_id=?",
+    'gl_rate': "SELECT username, rating FROM users ORDER BY rating DESC",
+    'pquest_num_get': "SELECT payedquest FROM users WHERE chat_id=?",
+    'fquest_num_get': "SELECT freequest FROM users WHERE chat_id=?",
+    'pquest_num_upd': "UPDATE users SET payedquest+=5 WHERE chat_id=?",
+    'fquest_num_upd': "UPDATE users SET freequest+=5 WHERE chat_id=?",
 }
 
 
@@ -49,7 +49,7 @@ def get_db_connection(dbname):
     return sqlite3.connect(dbname)
 
 bot = telebot.TeleBot(const.API_TOKEN)
-app = flask.Flask(__name__)
+#app = flask.Flask(__name__)
 
 """
 def exit_loop():
@@ -482,14 +482,17 @@ def start(message):
         money = 0
         rating = 2000
         referal = 0
-        cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.first_name, money, referal, rating))
+        payedquest = 1
+        freequest = 1
+
+        cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.first_name, money, referal, rating, payedquest, freequest))
         connection.commit()
 
         print(message.chat.id, 'started the bot.')
         bot.send_message(message.chat.id, 'Привет, ' + message.chat.first_name + texts.Start_text )
 
     else:
-        bot.send_message(message.chat.id, 'Загружаю твой прогресс...')
+        bot.send_message(message.chat.id, 'С возвращением, '+message.chat.first_name+"\n\n"+'Загружаю твой прогресс...')
         cursor.close()
         connection.close()
         print(message.chat.id, 'started the bot')
@@ -616,13 +619,13 @@ def start_handler(message):
         i = 0
         while message.chat.first_name != f[i][0]:
             i += 1
-        stri = '1 место: '+ f[0][0] + ' с рейтингом: ' + str(f[0][1]) + "\n" + '2 место: '\
+        stri = '1 место: '+f[0][0] + ' с рейтингом: ' + str(f[0][1]) + "\n" + '2 место: '\
                + f[1][0] + ' с рейтингом: ' + str(f[1][1]) + "\n" +   '3 место: ' + f[2][0]\
                + ' с рейтингом: ' + str(f[2][1]) + "\n" + '4 место: ' + f[3][0] + ' с рейтингом: ' \
                + str(f[3][1]) + "\n"+ '5 место: '+f[4][0]+ ' с рейтингом: '+str(f[4][1])
         bot.send_message(message.chat.id, stri)
         bot.send_message(message.chat.id, 'Твой рейтинг: ' + str(defs.get_rating(message))
-                         + '\n' + 'Позиция в рейтинге: ' + str(i+1))
++ '\n' + 'Позиция в рейтинге: ' + str(i+1))
     elif message.text == 'About':
         keyboard_defs.about_keyboard(message)
     elif message.text == 'Назад':
@@ -653,7 +656,7 @@ https://telegram.me/Crypto_Shit_Fucking_bot?start="""+str(message.chat.id))
         bot.send_message(680328648, 'Сообщение от: ' + message.chat.first_name + """
          Следующего содержания: """ + message.text)
 
-@app.route('/', methods=['GET', 'HEAD'])
+"""@app.route('/', methods=['GET', 'HEAD'])
 def index():
     return ''
 
@@ -678,12 +681,11 @@ if __name__ == '__main__':
     app.run(host=const.WEBHOOK_LISTEN,
             port=const.WEBHOOK_PORT,
             ssl_context=(const.WEBHOOK_SSL_CERT, const.WEBHOOK_SSL_PRIV),
-            debug=True)
+            debug=True)"""
 
 
 
 
-"""
+
 if __name__ == '__main__':
     bot.polling(none_stop=True)
-"""
