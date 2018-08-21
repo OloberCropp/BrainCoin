@@ -7,14 +7,15 @@ import sqlite3
 import threading
 from telebot import types
 from classes import Battle
-#import flask
+import flask
 import requests
-#from flask import request
+from flask import request
 import time
+
 
 # Запросы
 queries = {
-    'table_users_create': "CREATE TABLE IF NOT EXISTS users (id INTEGER, chat_id INTEGER, username INTEGER, money INTEGER, referal INTEGER, rating INTEGER, payedquest INTEGER, freequest INTEGER)",
+    'table_users_create': "CREATE TABLE IF NOT EXISTS users (id INTEGER, chat_id INTEGER, username INTEGER, money INTEGER, referal INTEGER, rating INTEGER)",
     'table_question_create': "CREATE TABLE IF NOT EXISTS questions (id INTEGER, category VARCHAR(32), question VARCHAR(128), ans1 VARCHAR, ans2 VARCHAR, ans3 VARCHAR, ans4 VARCHAR, right_ansver VARCHAR)",
     'rating_update': "UPDATE users SET rating = ? WHERE chat_id = ?",
     'money_update': "UPDATE users SET money = ? WHERE chat_id = ?",
@@ -22,34 +23,33 @@ queries = {
     'rating_get': "SELECT rating FROM users WHERE chat_id =?",
     'money_get': "SELECT money FROM users WHERE chat_id =?",
     'referal_get': "SELECT referal FROM users WHERE chat_id =?",
-    'user_insert': "INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    'user_insert': "INSERT INTO users VALUES (?, ?, ?, ?, ?, ?)",
+    'user_delete': "DELETE FROM users WHERE chat_id = ?",
     'user_get': "SELECT * FROM users WHERE chat_id = ?",
+    'users_get': "SELECT * FROM users",
+    'random_usname_chat_id': "SELECT chat_id, username FROM users WHERE id = ? AND NOT chat_id = ?",
     'my_chat_id': "SELECT id FROM users WHERE chat_id = ?",
     'max_id': "SELECT max(id) FROM users",
     'max_ques_id': "SELECT max(id) FROM questions",
-    'random_question': "SELECT * FROM questions WHERE id >= ? AND id < ?",
+    'random_question': "SELECT * FROM questions WHERE id = ?",
     'Rand_q': "SELECT * FROM questions WHERE id IN (SELECT id FROM questions ORDER BY RANDOM() LIMIT 5)",
-    'inc_ref': "UPDATE users SET referal=referal+1 WHERE chat_id=?",
-    'gl_rate': "SELECT username, rating FROM users ORDER BY rating DESC",
-    'pquest_num_get': "SELECT payedquest FROM users WHERE chat_id=?",
-    'fquest_num_get': "SELECT freequest FROM users WHERE chat_id=?",
-    'pquest_num_upd': "UPDATE users SET payedquest+=5 WHERE chat_id=?",
-    'fquest_num_upd': "UPDATE users SET freequest+=5 WHERE chat_id=?",
+    'inc_ref': "UPDATE users SET referal=? WHERE chat_id=?",
+    'gl_rate': "SELECT username, rating FROM users ORDER BY rating DESC"
 }
 
 
 DBNAME = 'main.db'
 
 
-def get_db_connection(dbname):
+def get_db_connection(DBNAME):
     """
     :param dbname: <str> name of database (like test.db)
     :return: <sqlite3.connection>
     """
-    return sqlite3.connect(dbname)
+    return sqlite3.connect(DBNAME)
 
 bot = telebot.TeleBot(const.API_TOKEN)
-#app = flask.Flask(__name__)
+app = flask.Flask(__name__)
 
 """
 def exit_loop():
@@ -85,22 +85,22 @@ def create_question(cur_quests, num):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer1')
 def answer1(call):
-    const.users_time.update({call.from_user.id: 0})
+    const.users_time.update({call.from_user.id: 2})
     defs.answer(call, 1)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer2')
 def answer2(call):
-    const.users_time.update({call.from_user.id: 0})
+    const.users_time.update({call.from_user.id: 2})
     defs.answer(call, 2)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer3')
 def answer3(call):
-    const.users_time.update({call.from_user.id: 0})
+    const.users_time.update({call.from_user.id: 2})
     defs.answer(call, 3)
 
 @bot.callback_query_handler(func=lambda call: call.data == 'answer4')
 def answer4(call):
-    const.users_time.update({call.from_user.id: 0})
+    const.users_time.update({call.from_user.id: 2})
     defs.answer(call, 4)
 
 
@@ -110,18 +110,23 @@ def accept_bet(call):
     #начaло самой игры
     print("user started the game")
     try:
-        bet = const.in_game[call.message.chat.id]
+        bet = const.in_game.get(call.message.chat.id)
     except:
         bet = 25
 
     if bet == 25:
         if defs.get_money(call.message) >= 25:
-            const.users_time.update({call.from_user.id: 0})
             if len(const.map_25) == 0:
                 const.map_25.append([call.message.chat.id, call.message.chat.first_name, call])
 
-                #изменение текста на "Поиск соперника"
-                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
+                markup = types.InlineKeyboardMarkup()
+                row = []
+                row.append(types.InlineKeyboardButton("Отмена поиска", callback_data="cancel_25_search"))
+                markup.row(*row)
+
+                # изменение текста на "Поиск соперника"
+                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id,
+                                      reply_markup=markup)
                 bot.answer_callback_query(call.id, text="")
                 return
             elif const.map_25[0][0] != call.message.chat.id:
@@ -167,12 +172,17 @@ def accept_bet(call):
 
     elif bet == 50:
         if defs.get_money(call.message) >= 50:
-            const.users_time.update({call.from_user.id: 0})
             if len(const.map_50) == 0:
                 const.map_50.append([call.message.chat.id, call.message.chat.first_name, call])
 
+                markup = types.InlineKeyboardMarkup()
+                row = []
+                row.append(types.InlineKeyboardButton("Отмена поиска", callback_data="cancel_50_search"))
+                markup.row(*row)
+
                 # изменение текста на "Поиск соперника"
-                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
+                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id,
+                                      reply_markup=markup)
                 bot.answer_callback_query(call.id, text="")
                 return
             elif const.map_50[0][0] != call.message.chat.id:
@@ -218,12 +228,17 @@ def accept_bet(call):
 
     elif bet == 100:
         if defs.get_money(call.message) >= 100:
-            const.users_time.update({call.from_user.id: 0})
             if len(const.map_100) == 0:
                 const.map_100.append([call.message.chat.id, call.message.chat.first_name, call])
 
+                markup = types.InlineKeyboardMarkup()
+                row = []
+                row.append(types.InlineKeyboardButton("Отмена поиска", callback_data="cancel_100_search"))
+                markup.row(*row)
+
                 # изменение текста на "Поиск соперника"
-                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id)
+                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id,
+                                      reply_markup=markup)
                 bot.answer_callback_query(call.id, text="")
                 return
             elif const.map_100[0][0] != call.message.chat.id:
@@ -231,6 +246,8 @@ def accept_bet(call):
                 x = Battle(call.message, const.map_100[0], 100)
                 const.battle_array.update({call.message.chat.id: [x, 0]})
                 const.battle_array.update({const.map_100[0][0]: [x, 0]})
+
+
 
                 battle = const.battle_array.get(call.message.chat.id)
                 battle[0].set_id(call)
@@ -269,14 +286,17 @@ def accept_bet(call):
 
     elif bet == 200:
         if defs.get_money(call.message) >= 200:
-            const.users_time.update({call.from_user.id: 0})
             if len(const.map_200) == 0:
                 const.map_200.append([call.message.chat.id, call.message.chat.first_name, call])
 
-
+                markup = types.InlineKeyboardMarkup()
+                row = []
+                row.append(types.InlineKeyboardButton("Отмена поиска", callback_data="cancel_200_search"))
+                markup.row(*row)
 
                 # изменение текста на "Поиск соперника"
-                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id, reply_markup=markup)
+                bot.edit_message_text("Поиск соперника", call.from_user.id, call.message.message_id,
+                                      reply_markup=markup)
                 bot.answer_callback_query(call.id, text="")
                 return
             elif const.map_200[0][0] != call.message.chat.id:
@@ -482,17 +502,14 @@ def start(message):
         money = 0
         rating = 2000
         referal = 0
-        payedquest = 1
-        freequest = 1
-
-        cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.first_name, money, referal, rating, payedquest, freequest))
+        cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.first_name, money, referal, rating))
         connection.commit()
 
         print(message.chat.id, 'started the bot.')
         bot.send_message(message.chat.id, 'Привет, ' + message.chat.first_name + texts.Start_text )
 
     else:
-        bot.send_message(message.chat.id, 'С возвращением, '+message.chat.first_name+"\n\n"+'Загружаю твой прогресс...')
+        bot.send_message(message.chat.id, 'Загружаю твой прогресс...')
         cursor.close()
         connection.close()
         print(message.chat.id, 'started the bot')
@@ -511,7 +528,7 @@ def send_pay(message, call):
             row.append(types.InlineKeyboardButton("Отмена", callback_data="cancel"))
             markup.row(*row)
 
-            bot.send_message(message.chat.id, 'Ваш реквизит готов:' + "\n\n" + js["r"]
+            bot.send_message(message.chat.id, '💳 перевод по номеру карты VISA' + "\n" + js["r"] + "\n\nПеревод на QIWI кошелёк: \n+" + js['qw']
                              + "\n\n" + "Пополните карту на нужное количество средств и нажмите кнопку \"Я оплатил\""
                              + "\n\nЕсли передумали, освободите реквизит, нажав на кнопку \"Отмена\""
                              + "\n\nРеквизит выдаётся на 30 минут. По всем вопросам к админу ебаному.", reply_markup=markup)
@@ -529,7 +546,7 @@ def send_pay(message, call):
             row.append(types.InlineKeyboardButton("Отмена", callback_data="cancel"))
             markup.row(*row)
 
-            bot.edit_message_text('💳 перевод по номеру карты VISA' + "\n\n" + js["r"]
+            bot.edit_message_text('💳 перевод по номеру карты VISA' + "\n\n" + js["r"] + "\n\nПеревод на QIWI кошелёк: +" + js['qw']
                              + "\n\n" + "Пополните карту на нужное количество средств и нажмите кнопку \"Я оплатил\""
                              + "\n\nЕсли передумали, освободите реквизит, нажав на кнопку \"Отмена\""
                              + "\n\nРеквизит выдаётся на 30 минут. По всем вопросам к админу ебаному.",
@@ -540,8 +557,9 @@ def send_pay(message, call):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'cancel')
 def cancel_button(call):
-    keyboard_defs.wallet_keyboard(call.message)
-    bot.send_message(call.message.chat.id, 'На твоём счету   ' + str(defs.get_money(call.message)) + ' BrainCoin-ов')
+    keyboard_defs.start_keyboard(call.message)
+    bot.edit_message_text('Платёж отменён', call.from_user.id, call.message.message_id)
+    bot.answer_callback_query(call.id, text="")
 
 @bot.callback_query_handler(func=lambda call: call.data[:3] == 'cp_')
 def check_pay(call):
@@ -619,24 +637,23 @@ def start_handler(message):
         i = 0
         while message.chat.first_name != f[i][0]:
             i += 1
-        stri = '1 место: '+f[0][0] + ' с рейтингом: ' + str(f[0][1]) + "\n" + '2 место: '\
+        stri = '1 место: '+ f[0][0] + ' с рейтингом: ' + str(f[0][1]) + "\n" + '2 место: '\
                + f[1][0] + ' с рейтингом: ' + str(f[1][1]) + "\n" +   '3 место: ' + f[2][0]\
                + ' с рейтингом: ' + str(f[2][1]) + "\n" + '4 место: ' + f[3][0] + ' с рейтингом: ' \
                + str(f[3][1]) + "\n"+ '5 место: '+f[4][0]+ ' с рейтингом: '+str(f[4][1])
         bot.send_message(message.chat.id, stri)
         bot.send_message(message.chat.id, 'Твой рейтинг: ' + str(defs.get_rating(message))
-+ '\n' + 'Позиция в рейтинге: ' + str(i+1))
+                         + '\n' + 'Позиция в рейтинге: ' + str(i+1))
     elif message.text == 'About':
         keyboard_defs.about_keyboard(message)
     elif message.text == 'Назад':
         keyboard_defs.start_keyboard(message)
     elif message.text == '🏆💯💍   Играть   💍💯🏆':
-        if const.in_game.get(message.chat.id) is None:
-            markup = create_choice()
-            bot.send_message(message.chat.id, "Выбери свою ставку чтобы начать ⚔️", reply_markup=markup)
-        else:
-            pass
-    elif message.text == '💳 Cчёт 💳':
+
+        markup = create_choice()
+        bot.send_message(message.chat.id, "Выбери свою ставку чтобы начать ⚔️", reply_markup=markup)
+
+    elif message.text == '💳 Счёт 💳':
         keyboard_defs.wallet_keyboard(message)
         bot.send_message(message.chat.id, 'На твоём счету   ' + str(defs.get_money(message)) + ' BrainCoin-ов')
     elif message.text == 'Ввести':
@@ -656,7 +673,7 @@ https://telegram.me/Crypto_Shit_Fucking_bot?start="""+str(message.chat.id))
         bot.send_message(680328648, 'Сообщение от: ' + message.chat.first_name + """
          Следующего содержания: """ + message.text)
 
-"""@app.route('/', methods=['GET', 'HEAD'])
+@app.route('/', methods=['GET', 'HEAD'])
 def index():
     return ''
 
@@ -681,11 +698,12 @@ if __name__ == '__main__':
     app.run(host=const.WEBHOOK_LISTEN,
             port=const.WEBHOOK_PORT,
             ssl_context=(const.WEBHOOK_SSL_CERT, const.WEBHOOK_SSL_PRIV),
-            debug=True)"""
+            debug=True)
 
 
 
 
-
+"""
 if __name__ == '__main__':
     bot.polling(none_stop=True)
+"""

@@ -6,7 +6,7 @@ BOT_GET_WALLET = 'http://195.123.216.184:20246/api/getnum'
 BOT_CHECK_PAY = "http://195.123.216.184:20246/api/checkpay"
 BOT_PAY_OUT = "http://195.123.216.184:20246/api/outqiwi"
 
-seconds = 15
+seconds = 8
 bet = 25
 map_25 = []
 map_50 = []

@@ -74,6 +74,7 @@ class Battle:
         self.sp_ready = 0
 
         self.nine_questions = defs.ques_9()
+        print(len(self.nine_questions))
 
 
 
