@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 import const
 import texts
+import html
 
 bot = telebot.TeleBot(const.API_TOKEN)
 
@@ -10,14 +11,14 @@ bot = telebot.TeleBot(const.API_TOKEN)
 def start_keyboard(message):
     murkup = types.ReplyKeyboardMarkup(True, False)
     murkup.row('🏆💯💍   Играть   💍💯🏆')
-    murkup.row('Рейтинг', '💳 Счёт 💳', 'About')
-    bot.send_message(message.chat.id, 'Сделай свой выбор...', reply_markup=murkup)
+    murkup.row('Рейтинг', 'Мой счёт', 'About')
+    bot.send_message(message.chat.id, '<strong>Играй.  Разивайся.  Зарабатывай.</strong>', parse_mode="HTML", reply_markup=murkup)
 
 def about_keyboard(message):
     murkup = types.ReplyKeyboardMarkup(True, False)
     murkup.row('Пригласить друга')
     murkup.row('Что-то не так?', 'Назад')
-    bot.send_message(message.chat.id, texts.about_text, reply_markup=murkup)
+    bot.send_message(message.chat.id, texts.about_text, parse_mode="HTML", reply_markup=murkup)
 
 def wallet_keyboard(message):
     murkup = types.ReplyKeyboardMarkup(True, False)
@@ -31,3 +32,7 @@ def freecoins_menu(message):                                        #Меню р
     murkup.row('Пригласить друга')
     murkup.row('Назад')
     bot.send_message(message.chat.id, texts.free_coins, reply_markup=murkup)
+
+def hide(message):
+    reply_markup = types.ReplyKeyboardRemove()
+    bot.send_message(message.chat.id, "Я вернуcь",reply_markup=reply_markup)

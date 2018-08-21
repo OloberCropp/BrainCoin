@@ -500,16 +500,19 @@ def start(message):
 
         # Запись пользователя в базу
         money = 0
-        rating = 2000
+        rating = 1200
         referal = 0
-        cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.first_name, money, referal, rating))
+        payedquest = 1
+        freequest = 1
+
+        cursor.execute(queries['user_insert'], (max_id+1, message.chat.id, message.chat.first_name, money, referal, rating, payedquest, freequest))
         connection.commit()
 
         print(message.chat.id, 'started the bot.')
         bot.send_message(message.chat.id, 'Привет, ' + message.chat.first_name + texts.Start_text )
 
     else:
-        bot.send_message(message.chat.id, 'Загружаю твой прогресс...')
+        bot.send_message(message.chat.id, '<strong>С возвращением, '+message.chat.first_name+"</strong>\n"+'Загружаю твой прогресс...', parse_mode="HTML")
         cursor.close()
         connection.close()
         print(message.chat.id, 'started the bot')
@@ -528,10 +531,13 @@ def send_pay(message, call):
             row.append(types.InlineKeyboardButton("Отмена", callback_data="cancel"))
             markup.row(*row)
 
-            bot.send_message(message.chat.id, '💳 перевод по номеру карты VISA' + "\n" + js["r"] + "\n\nПеревод на QIWI кошелёк: \n+" + js['qw']
-                             + "\n\n" + "Пополните карту на нужное количество средств и нажмите кнопку \"Я оплатил\""
-                             + "\n\nЕсли передумали, освободите реквизит, нажав на кнопку \"Отмена\""
-                             + "\n\nРеквизит выдаётся на 30 минут. По всем вопросам к админу ебаному.", reply_markup=markup)
+            bot.send_message(message.chat.id, '💳Перевод по номеру карты VISA.'
+                             + "\n\nПополнение через карту QIWI: \n<stong>" + js["r"]
+                             + "</strong>\n\nПополнение через QIWI кошелёк: \n<strong>" + js['qw']
+                             + "\n\n\n" + "Для пополнения балланса переведите необходимую сумму на счёт и нажмите \"Я оплатил\"</strong>"
+                             + "\n\n<strong>Если решили повременить, пожалуйста, освободите реквизит, нажав на кнопку \"Отмена\""
+                             + "\n\nТекущий курс BrainCoin к российскому рублю 0.89/1.00"
+                             + "\n\nРеквизит выдаётся на 30 минут!!!</strong>", parse_mode="HTML", reply_markup=markup)
         else:
             bot.send_message(message.chat.id, "Свободного реквизита нет, повторите попытку через 15 минут.")
     else:
@@ -546,11 +552,14 @@ def send_pay(message, call):
             row.append(types.InlineKeyboardButton("Отмена", callback_data="cancel"))
             markup.row(*row)
 
-            bot.edit_message_text('💳 перевод по номеру карты VISA' + "\n\n" + js["r"] + "\n\nПеревод на QIWI кошелёк: +" + js['qw']
-                             + "\n\n" + "Пополните карту на нужное количество средств и нажмите кнопку \"Я оплатил\""
-                             + "\n\nЕсли передумали, освободите реквизит, нажав на кнопку \"Отмена\""
-                             + "\n\nРеквизит выдаётся на 30 минут. По всем вопросам к админу ебаному.",
-                                  call.from_user.id, call.message.message_id, reply_markup=markup)
+            bot.edit_message_text('💳Перевод по номеру карты VISA.'
+                             + "\n\nПополнение через карту QIWI: \n<stong>" + js["r"]
+                             + "</strong>\n\nПополнение через QIWI кошелёк: \n<strong>" + js['qw']
+                             + "\n\n\n" + "Для пополнения балланса переведите необходимую сумму на счёт и нажмите \"Я оплатил\"</strong>"
+                             + "\n\n<strong>Если решили повременить, пожалуйста, освободите реквизит, нажав на кнопку \"Отмена\""
+                             + "\n\nТекущий курс BrainCoin к российскому рублю 0.89/1.00"
+                             + "\n\nРеквизит выдаётся на 30 минут!!!</strong>",
+                                  call.from_user.id, call.message.message_id, parse_mode="HTML", reply_markup=markup)
             bot.answer_callback_query(call.id, text="")
         else:
             bot.send_message(message.chat.id, "Свободного реквизита нет, повторите попытку через 15 минут.")
@@ -653,7 +662,7 @@ def start_handler(message):
         markup = create_choice()
         bot.send_message(message.chat.id, "Выбери свою ставку чтобы начать ⚔️", reply_markup=markup)
 
-    elif message.text == '💳 Счёт 💳':
+    elif message.text == 'Мой счёт':
         keyboard_defs.wallet_keyboard(message)
         bot.send_message(message.chat.id, 'На твоём счету   ' + str(defs.get_money(message)) + ' BrainCoin-ов')
     elif message.text == 'Ввести':
